@@ -1,0 +1,100 @@
+name: 'Build application'
+on:
+  workflow_dispatch:
+    inputs:
+      manual:
+        description: 'Default value for tiggered workflows'
+        type: boolean
+        required: false
+        default: true
+  pull_request:
+    branches:
+      - develop
+  push:
+    branches:
+      - develop
+      - main
+jobs:
+  target-setup:
+    name: 'Set up ENV'
+    runs-on: 'windows-latest'
+    outputs:
+      apiKey: ${{ steps.setvars.outputs.apikey }}
+      apiUrl: ${{ steps.setvars.outputs.apiurl }}
+      env: ${{ steps.setvars.outputs.env }}
+    steps:
+      - name: Set build environment
+        id: setvars
+        shell: bash
+        run: |
+          if [[ ${{ github.ref_name }} =~ develop || ${{ github.ref_name }} =~ fix/workflow-checks || ${{ github.event_name }} =~ pull_request ]]; then
+            echo "env=development" >> $GITHUB_OUTPUT
+          elif [[ ${{ github.ref_name }} =~ main ]]; then
+            echo "env=production" >> $GITHUB_OUTPUT
+          fi
+
+  build-app:
+    needs: ['target-setup']
+    environment: ${{ needs.target-setup.outputs.env }}
+    env:
+      env: ${{ needs.target-setup.outputs.env }}
+    name: 'Build Application Binary version: ${{ github.sha }}'
+    strategy:
+      fail-fast: false
+      matrix:
+        build:
+          - name: 'App'
+            platform: 'linux/amd64'
+            os: 'ubuntu-latest'
+          - name: 'App'
+            platform: 'windows/amd64'
+            os: 'windows-latest'
+          - name: 'App'
+            platform: 'darwin/universal'
+            os: 'macos-latest'
+    runs-on: ${{matrix.build.os}}
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Check ENV
+        shell: bash
+        run: |
+          if [[ ${{ env.env }} =~ development ]]; then
+            
+          elif [[ ${{env.env}} =~ production ]]; then 
+            
+          fi
+
+      - name: Set LDFlags
+        shell: bash
+        run: |
+          echo "ldFlags=-s -w -h -H windowsgui -X 'main.version=${{ github.sha }}' -X 'main.sentry_dsn=${{ secrets.SENTRY_DSN }}'" >> $GITHUB_ENV
+
+      - name: Install Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: 1.21.6
+
+      - name: Setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Get Wails
+        run: go install github.com/wailsapp/wails/v2/cmd/wails@latest
+
+      - name: Build wails
+        uses: dAppServer/wails-build-action@v2.2
+        id: build
+        with:
+          build-name: ${{ matrix.build.name }}
+          build-platform: ${{ matrix.build.platform }}
+          package: false
+          go-version: '1.20'
+
+      - name: Upload build artifacts
+        if: github.event_name != 'pull_request' || inputs.manual != true
+        uses: actions/upload-artifact@v2
+        with:
+          name: Datalogger
+          path: build/bin/*
