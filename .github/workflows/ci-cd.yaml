@@ -19,15 +19,13 @@ jobs:
     name: 'Set up ENV'
     runs-on: 'windows-latest'
     outputs:
-      apiKey: ${{ steps.setvars.outputs.apikey }}
-      apiUrl: ${{ steps.setvars.outputs.apiurl }}
       env: ${{ steps.setvars.outputs.env }}
     steps:
       - name: Set build environment
         id: setvars
         shell: bash
         run: |
-          if [[ ${{ github.ref_name }} =~ develop || ${{ github.ref_name }} =~ fix/workflow-checks || ${{ github.event_name }} =~ pull_request ]]; then
+          if [[ ${{ github.ref_name }} =~ develop || ${{ github.event_name }} =~ pull_request ]]; then
             echo "env=development" >> $GITHUB_OUTPUT
           elif [[ ${{ github.ref_name }} =~ main ]]; then
             echo "env=production" >> $GITHUB_OUTPUT
@@ -56,19 +54,19 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Check ENV
-        shell: bash
-        run: |
-          if [[ ${{ env.env }} =~ development ]]; then
-            
-          elif [[ ${{env.env}} =~ production ]]; then 
-            
-          fi
+      # - name: Check ENV
+      #   shell: bash
+      #   run: |
+      #     if [[ ${{ env.env }} =~ development ]]; then
+
+      #     elif [[ ${{env.env}} =~ production ]]; then
+
+      #     fi
 
       - name: Set LDFlags
         shell: bash
         run: |
-          echo "ldFlags=-s -w -h -H windowsgui -X 'main.version=${{ github.sha }}' -X 'main.sentry_dsn=${{ secrets.SENTRY_DSN }}'" >> $GITHUB_ENV
+          echo "ldFlags=-s -w -h -H windowsgui -X 'main.version=${{ github.sha }}'" >> $GITHUB_ENV
 
       - name: Install Go
         uses: actions/setup-go@v4
