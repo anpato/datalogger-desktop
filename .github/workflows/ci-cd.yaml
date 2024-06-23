@@ -41,13 +41,13 @@ jobs:
       fail-fast: false
       matrix:
         build:
-          - name: 'App'
+          - name: 'Datalogger'
             platform: 'linux/amd64'
             os: 'ubuntu-latest'
-          - name: 'App'
+          - name: 'Datalogger'
             platform: 'windows/amd64'
             os: 'windows-latest'
-          - name: 'App'
+          - name: 'Datalogger'
             platform: 'darwin/universal'
             os: 'macos-latest'
     runs-on: ${{matrix.build.os}}
@@ -69,7 +69,7 @@ jobs:
           echo "ldFlags=-s -w -h -H windowsgui -X 'main.version=${{ github.sha }}'" >> $GITHUB_ENV
 
       - name: Install Go
-        uses: actions/setup-go@v4
+        uses: actions/setup-go@v5
         with:
           go-version: 1.22.4
 
@@ -90,7 +90,9 @@ jobs:
           build-name: ${{ matrix.build.name }}
           build-platform: ${{ matrix.build.platform }}
           package: false
-          go-version: '1.20'
+          sign: false
+          wails-version: 'v2.9.1'
+          go-version: '1.22'
 
       - name: Upload build artifacts
         if: github.event_name != 'pull_request' || inputs.manual != true
