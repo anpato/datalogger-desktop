@@ -48,7 +48,10 @@ jobs:
             platform: 'windows/amd64'
             os: 'windows-latest'
           - name: 'Datalogger'
-            platform: 'darwin/universal'
+            platform: 'darwin/amd64'
+            os: 'macos-latest'
+          - name: 'Datalogger'
+            platform: 'darwin/arm64'
             os: 'macos-latest'
     runs-on: ${{matrix.build.os}}
     steps:
@@ -89,5 +92,5 @@ jobs:
         if: github.event_name != 'pull_request' || inputs.manual != true
         uses: actions/upload-artifact@v4
         with:
-          name: ${{matrix.build.name}}-${{matrix.build.os}}
+          name: ${{matrix.build.name}}-${{matrix.build.os}}-${{matrix.build.platoform}}
           path: build/bin/*
