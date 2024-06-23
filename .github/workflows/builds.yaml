@@ -1,0 +1,91 @@
+name: 'Build application'
+on:
+  workflow_dispatch:
+    inputs:
+      manual:
+        description: 'Default value for tiggered workflows'
+        type: boolean
+        required: false
+        default: true
+  pull_request:
+    branches:
+      - develop
+  push:
+    branches:
+      - develop
+      - main
+jobs:
+  target-setup:
+    name: 'Set up ENV'
+    runs-on: 'ubuntu-latest'
+    outputs:
+      env: ${{ steps.setvars.outputs.env }}
+    steps:
+      - name: Set build environment
+        id: setvars
+        shell: bash
+        run: |
+          if [[ ${{ github.ref_name }} =~ develop || ${{ github.event_name }} =~ pull_request ]]; then
+            echo "env=dev" >> $GITHUB_OUTPUT
+          elif [[ ${{github.ref_name }} =~ main ]]; then
+            echo "env=prod" >> $GITHUB_OUTPUT
+          fi
+
+  build-app:
+    name: 'Build | ${{ matrix.build.os }}'
+    needs: ['target-setup']
+    env:
+      output: 'build/bin'
+    strategy:
+      fail-fast: false
+      matrix:
+        build:
+          [
+            {
+              name: 'Datalogger',
+              platform: 'windows/amd64',
+              os: 'windows-latest',
+              file: 'datalogger-${{ needs.target-setup.outputs.env }}-windows-amd64',
+              outfile: 'Datalogger-amd64-installer.exe'
+            },
+            {
+              name: 'Datalogger',
+              platform: 'darwin/universal',
+              os: 'macos-latest',
+              file: 'datalogger-${{ needs.target-setup.outputs.env }}-macos',
+              outfile: 'Datalogger.app'
+            }
+          ]
+    runs-on: ${{ matrix.build.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 'Install Pnpm'
+        uses: pnpm/action-setup@v4
+        with:
+          version: '8.14'
+
+      - name: Build wails
+        uses: dAppServer/wails-build-action@v2.2
+        id: build
+        with:
+          build-name: ${{ matrix.build.name }}
+          build-platform: ${{ matrix.build.platform }}
+          wails-version: v2.9.1
+          package: false
+          go-version: '1.22.4'
+          node-version: 20
+
+      - name: Package application
+        if: github.event_name != 'pull_request'
+        shell: bash
+        run: |
+          cd build/bin
+          tar -czvf ${{ matrix.build.file }}.tar ${{ matrix.build.outfile }}
+
+      - name: Upload build artifacts
+        if: github.event_name != 'pull_request'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.build.file }}
+          path: ${{ env.output }}/${{ matrix.build.file }}.tar
