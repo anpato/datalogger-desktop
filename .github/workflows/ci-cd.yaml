@@ -36,7 +36,7 @@ jobs:
     environment: ${{ needs.target-setup.outputs.env }}
     env:
       env: ${{ needs.target-setup.outputs.env }}
-    name: "Build Application Binary's | ${{ matrix.build.os }}"
+    name: "Build Application Binary's | ${{ matrix.build.os }} ${{ matrix.build.platform }}"
     strategy:
       fail-fast: false
       matrix:
@@ -92,5 +92,5 @@ jobs:
         if: github.event_name != 'pull_request' || inputs.manual != true
         uses: actions/upload-artifact@v4
         with:
-          name: ${{matrix.build.name}}-${{matrix.build.os}}-${{matrix.build.platoform}}
+          name: ${{matrix.build.name}}-${{matrix.build.os}}-${{matrix.build.platform}}
           path: build/bin/*
