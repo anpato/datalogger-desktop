@@ -36,7 +36,7 @@ jobs:
     environment: ${{ needs.target-setup.outputs.env }}
     env:
       env: ${{ needs.target-setup.outputs.env }}
-    name: 'Build Application Binary version: ${{ github.sha }}'
+    name: 'Build Application Binary version: ${{ github.sha }} | ${{ matrix.build.os }}'
     strategy:
       fail-fast: false
       matrix:
@@ -82,9 +82,6 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: 20
-
-      - name: Get Wails
-        run: go install github.com/wailsapp/wails/v2/cmd/wails@2.7.1
 
       - name: Build wails
         uses: dAppServer/wails-build-action@v2.2
