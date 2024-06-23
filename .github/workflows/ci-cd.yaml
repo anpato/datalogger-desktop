@@ -89,5 +89,5 @@ jobs:
         if: github.event_name != 'pull_request' || inputs.manual != true
         uses: actions/upload-artifact@v4
         with:
-          name: Datalogger
+          name: ${{matrix.build.name}}-${{matrix.build.os}}
           path: build/bin/*
