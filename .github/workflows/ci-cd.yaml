@@ -73,19 +73,19 @@ jobs:
         with:
           go-version: 1.21.6
 
-      - name: 'Install Pnpm'    
-          uses: pnpm/action-setup@v2
-          with:
-            version: '8.14'
-  
+      - name: 'Install Pnpm'
+        uses: pnpm/action-setup@v2
+        with:
+          version: '8.14'
+
       - name: Setup Node 20
         uses: actions/setup-node@v3
         with:
           node-version: 20
           cache: 'pnpm'
-          
+
       - name: Get Wails
-        run: go install github.com/wailsapp/wails/v2/cmd/wails@latest
+        run: go install github.com/wailsapp/wails/v2/cmd/wails@2.7.1
 
       - name: Build wails
         uses: dAppServer/wails-build-action@v2.2
