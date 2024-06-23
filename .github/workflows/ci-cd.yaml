@@ -54,15 +54,6 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      # - name: Check ENV
-      #   shell: bash
-      #   run: |
-      #     if [[ ${{ env.env }} =~ development ]]; then
-
-      #     elif [[ ${{env.env}} =~ production ]]; then
-
-      #     fi
-
       - name: Set LDFlags
         shell: bash
         run: |
@@ -89,7 +80,7 @@ jobs:
         with:
           build-name: ${{ matrix.build.name }}
           build-platform: ${{ matrix.build.platform }}
-          package: false
+          package: true
           sign: false
           wails-version: 'v2.9.1'
           go-version: '1.22'
