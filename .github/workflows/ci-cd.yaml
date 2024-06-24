@@ -46,16 +46,19 @@ jobs:
             type: amd64
             os: 'windows-latest'
             file: 'datalogger.exe'
+            outdir: 'windows'
           - name: 'Datalogger'
             platform: 'darwin/amd64'
             type: amd64
             os: 'macos-latest'
             file: 'Datalogger.app'
+            outdir: 'amd64'
           - name: 'Datalogger'
             platform: 'darwin/arm64'
             type: arm64
             os: 'macos-latest'
             file: 'Datalogger.app'
+            outdir: 'arm'
     runs-on: ${{matrix.build.os}}
     steps:
       - uses: actions/checkout@v4
@@ -84,11 +87,12 @@ jobs:
         uses: dAppServer/wails-build-action@v2.2
         id: build
         with:
-          build-name: ${{ matrix.build.file }}
+          build-name: ${{ matrix.build.outdir }}
           build-platform: ${{ matrix.build.platform }}
           package: true
           sign: false
           wails-version: 'v2.9.1'
+          node-version: 20
           go-version: '1.22'
 
       # - name: Upload build artifacts
