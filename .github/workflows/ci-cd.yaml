@@ -114,12 +114,5 @@ jobs:
         if: github.event_name != 'pull_request'
         uses: actions/upload-artifact@v2
         with:
-          name: datalogger-${{matrix.build.platform}}
+          name: datalogger-${{matrix.build.type}}
           path: build/bin/*
-
-      # - name: Upload build artifacts
-      #   if: github.event_name != 'pull_request' || inputs.manual != true
-      #   uses: actions/upload-artifact@v4
-      #   with:
-      #     name: ${{matrix.build.name}}-${{matrix.build.os}}-${{matrix.build.type}}-${{github.sha}}
-      #     path: build/bin/${{matrix.build.file}}
