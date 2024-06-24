@@ -57,7 +57,7 @@ jobs:
               platform: 'darwin/universal',
               type: macos,
               os: 'macos-latest',
-              file: 'datalogger-macos-${{ needs.target-setup.outputs.env }}.tar',
+              file: 'datalogger-macos-${{ needs.target-setup.outputs.env }}',
               outdir: 'macos'
             }
           ]
@@ -103,4 +103,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.build.file }}
-          path: ${{ env.output }}/${{ matrix.build.file }}
+          path: ${{ env.output }}
