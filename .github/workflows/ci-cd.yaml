@@ -114,7 +114,7 @@ jobs:
         if: github.event_name != 'pull_request'
         uses: actions/upload-artifact@v2
         with:
-          name: datalogger
+          name: datalogger-${{matrix.build.platform}}
           path: build/bin/*
 
       # - name: Upload build artifacts
