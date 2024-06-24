@@ -19,15 +19,13 @@ jobs:
     name: 'Set up ENV'
     runs-on: 'windows-latest'
     outputs:
-      apiKey: ${{ steps.setvars.outputs.apikey }}
-      apiUrl: ${{ steps.setvars.outputs.apiurl }}
       env: ${{ steps.setvars.outputs.env }}
     steps:
       - name: Set build environment
         id: setvars
         shell: bash
         run: |
-          if [[ ${{ github.ref_name }} =~ develop || ${{ github.ref_name }} =~ fix/workflow-checks || ${{ github.event_name }} =~ pull_request ]]; then
+          if [[ ${{ github.ref_name }} =~ develop || ${{ github.event_name }} =~ pull_request ]]; then
             echo "env=development" >> $GITHUB_OUTPUT
           elif [[ ${{ github.ref_name }} =~ main ]]; then
             echo "env=production" >> $GITHUB_OUTPUT
@@ -38,63 +36,78 @@ jobs:
     environment: ${{ needs.target-setup.outputs.env }}
     env:
       env: ${{ needs.target-setup.outputs.env }}
-    name: 'Build Application Binary version: ${{ github.sha }}'
+      filename: 'datalogger-${{ matrix.build.type }}-${{ needs.target-setup.outputs.env }}'
+      output: 'build/bin'
+    name: 'Build | ${{ matrix.build.os }} ${{ matrix.build.platform }}'
     strategy:
       fail-fast: false
       matrix:
         build:
-          - name: 'App'
-            platform: 'linux/amd64'
-            os: 'ubuntu-latest'
-          - name: 'App'
-            platform: 'windows/amd64'
-            os: 'windows-latest'
-          - name: 'App'
-            platform: 'darwin/universal'
-            os: 'macos-latest'
+          [
+            {
+              name: 'Datalogger',
+              platform: 'windows/amd64',
+              type: windows-amd64,
+              os: 'windows-latest',
+              file: 'datalogger-${{ needs.target-setup.outputs.env }}.exe',
+              outdir: 'windows'
+            },
+            {
+              name: 'Datalogger',
+              platform: 'darwin/universal',
+              type: macos,
+              os: 'macos-latest',
+              file: 'datalogger-macos-${{ needs.target-setup.outputs.env }}.tar',
+              outdir: 'macos'
+            }
+          ]
     runs-on: ${{matrix.build.os}}
     steps:
-      - uses: actions/checkout@v3
-
-      - name: Check ENV
-        shell: bash
-        run: |
-          if [[ ${{ env.env }} =~ development ]]; then
-            
-          elif [[ ${{env.env}} =~ production ]]; then 
-            
-          fi
+      - uses: actions/checkout@v4
 
       - name: Set LDFlags
         shell: bash
         run: |
-          echo "ldFlags=-s -w -h -H windowsgui -X 'main.version=${{ github.sha }}' -X 'main.sentry_dsn=${{ secrets.SENTRY_DSN }}'" >> $GITHUB_ENV
+          echo "ldFlags=-s -w -h -H windowsgui -X 'main.version=${{ github.sha }}'" >> $GITHUB_ENV
 
       - name: Install Go
-        uses: actions/setup-go@v4
+        uses: actions/setup-go@v5
         with:
-          go-version: 1.21.6
+          go-version: 1.22.4
 
-      - name: Setup node
+      - name: 'Install Pnpm'
+        uses: pnpm/action-setup@v4
+        with:
+          version: '8.14'
+
+      - name: Setup Node 20
         uses: actions/setup-node@v4
         with:
           node-version: 20
 
       - name: Get Wails
-        run: go install github.com/wailsapp/wails/v2/cmd/wails@latest
+        run: go install github.com/wailsapp/wails/v2/cmd/wails@v2.9.1
 
-      - name: Build wails
-        uses: dAppServer/wails-build-action@v2.2
-        id: build
-        with:
-          build-name: ${{ matrix.build.name }}
-          build-platform: ${{ matrix.build.platform }}
-          package: false
-          go-version: '1.20'
+      - name: Build Wails app
+        run: |
+          wails build -platform ${{ matrix.build.platform }}
 
-      - name: Upload build artifacts
-        if: github.event_name != 'pull_request' || inputs.manual != true
-        uses: actions/upload-artifact@v2
+      - name: Package application
+        if: matrix.build.type == 'macos' && github.event_name != 'pull_request'
+        run: |
+          cd build/bin
+          tar -czf ${{ matrix.build.file }} Datalogger.app
+
+      - name: Upload windows build artifacts
+        if: github.event_name != 'pull_request' && matrix.build.type == 'windows-amd64'
+        uses: actions/upload-artifact@v4
         with:
-          name: Datalogger
-          path: build/bin/*
+          name: ${{ matrix.build.file }}
+          path: ${{ env.output }}
+
+      - name: Upload macos build artifacts
+        if: github.event_name != 'pull_request' && matrix.build.type == 'macos'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.build.file }}
+          path: ${{ env.output }}/${{matrix.build.file}}
