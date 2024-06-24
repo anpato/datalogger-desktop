@@ -83,17 +83,39 @@ jobs:
         with:
           node-version: 20
 
-      - name: Build wails
-        uses: dAppServer/wails-build-action@v2.2
-        id: build
+      - name: Set LDFlags
+        shell: bash
+        run: |
+          echo "ldFlags=-s -w -h -X 'main.version=${{ github.sha }}'" >> $GITHUB_ENV
+
+      - name: Get Wails
+        run: go install github.com/wailsapp/wails/v2/cmd/wails@v2.7.1
+
+      - name: Build Wails app
+        run: |
+          wails build -tags desktop,${{ env.env }} -ldflags "${{ env. ldFlags }}"
+
+      # - name: Build wails
+      #   uses: dAppServer/wails-build-action@v2.2
+      #   id: build
+      #   with:
+      #     build-name: ${{ matrix.build.outdir }}
+      #     build-platform: ${{ matrix.build.platform }}
+      #     package: true
+      #     sign: false
+      #     wails-version: 'v2.9.1'
+      #     node-version: 20
+      #     go-version: '1.22'
+      - name: Build Wails app
+        run: |
+          wails build -tags desktop,${{ env.env }} -ldflags "${{ env. ldFlags }}"
+
+      - name: Upload build artifacts
+        if: github.event_name != 'pull_request'
+        uses: actions/upload-artifact@v2
         with:
-          build-name: ${{ matrix.build.outdir }}
-          build-platform: ${{ matrix.build.platform }}
-          package: true
-          sign: false
-          wails-version: 'v2.9.1'
-          node-version: 20
-          go-version: '1.22'
+          name: datalogger
+          path: build/bin/*
 
       # - name: Upload build artifacts
       #   if: github.event_name != 'pull_request' || inputs.manual != true
