@@ -93,7 +93,7 @@ jobs:
           wails build -platform ${{ matrix.build.platform }}
 
       - name: Package application
-        if: matrix.build.type == 'macos'
+        if: matrix.build.type == 'macos' && github.event_name != 'pull_request'
         run: |
           cd build/bin
           tar -czf ${{ matrix.build.file }} Datalogger.app
@@ -103,4 +103,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.build.file }}
-          path: ${{ env.output }}
+          path: ${{ env.output }}/${{ matrix.build.file }}
