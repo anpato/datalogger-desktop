@@ -98,8 +98,15 @@ jobs:
           cd build/bin
           tar -czf ${{ matrix.build.file }} Datalogger.app
 
-      - name: Upload build artifacts
-        if: github.event_name != 'pull_request'
+      - name: Upload windows build artifacts
+        if: github.event_name != 'pull_request' && matrix.build.type == 'windows-amd64'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.build.file }}
+          path: ${{ env.output }}
+
+      - name: Upload macos build artifacts
+        if: github.event_name != 'pull_request' && matrix.build.type == 'macos'
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.build.file }}
