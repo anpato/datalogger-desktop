@@ -49,7 +49,7 @@ jobs:
             outdir: 'windows'
           - name: 'Datalogger'
             platform: 'darwin/universal'
-            type: macos-amd64
+            type: macos
             os: 'macos-latest'
             file: 'Datalogger.app'
             outdir: 'macos'
@@ -89,6 +89,10 @@ jobs:
       - name: Build Wails app
         run: |
           wails build -platform ${{matrix.build.platform}}
+      - name: Update executable
+        if: matrix.build.type == 'macos'
+        run: |
+          chmod +x /build/bin/Datalogger.app/Contents/MacOS/Datalogger
 
       - name: Upload build artifacts
         if: github.event_name != 'pull_request'
