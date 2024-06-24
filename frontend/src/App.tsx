@@ -229,25 +229,6 @@ export default function App() {
         {availableKeys.length ? (
           <div className="flex lg:flex-row flex-col gap-2 w-full">
             <div className="flex flex-col items-center gap-2">
-              {/* <div className="flex items-center gap-2">
-                <Button
-                  disabled={strokeSize === strokeSettings.min}
-                  outline
-                  onClick={() => changeStrokeSize('down')}
-                >
-                  -
-                </Button>
-                <p>
-                  Current line width: <code>{strokeSize}</code>
-                </p>
-                <Button
-                  disabled={strokeSize === strokeSettings.max}
-                  outline
-                  onClick={() => changeStrokeSize('up')}
-                >
-                  +
-                </Button>
-              </div> */}
               <div className="flex flex-col items-center gap-1">
                 <Sidebar className="px-2 w-full max-h-[200px] lg:max-h-[300px]">
                   <Sidebar.Items className="max-h-[200px] lg:max-h-[300px]">
