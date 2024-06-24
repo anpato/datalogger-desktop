@@ -36,7 +36,7 @@ jobs:
     environment: ${{ needs.target-setup.outputs.env }}
     env:
       env: ${{ needs.target-setup.outputs.env }}
-      filename: 'datalogger-${{matrix.build.type}}-${{needs.target-setup.outputs.env}}'
+      filename: 'datalogger-${{ matrix.build.type }}-${{ needs.target-setup.outputs.env }}'
       output: 'build/bin'
     name: 'Build | ${{ matrix.build.os }} ${{ matrix.build.platform }}'
     strategy:
@@ -49,7 +49,7 @@ jobs:
               platform: 'windows/amd64',
               type: windows-amd64,
               os: 'windows-latest',
-              file: 'datalogger.exe',
+              file: 'datalogger-${{ needs.target-setup.outputs.env }}.exe',
               outdir: 'windows'
             },
             {
@@ -57,7 +57,7 @@ jobs:
               platform: 'darwin/universal',
               type: macos,
               os: 'macos-latest',
-              file: 'datalogger-macos-${{needs.target-setup.outputs.env}}.tar',
+              file: 'datalogger-macos-${{ needs.target-setup.outputs.env }}.tar',
               outdir: 'macos'
             }
           ]
@@ -90,17 +90,17 @@ jobs:
 
       - name: Build Wails app
         run: |
-          wails build -platform ${{matrix.build.platform}}
+          wails build -platform ${{ matrix.build.platform }}
 
       - name: Package application
         if: matrix.build.type == 'macos'
         run: |
           cd build/bin
-          tar -czf datalogger-${{matrix.build.type}}.tar Datalogger.app
+          tar -czf ${{ matrix.build.file }} Datalogger.app
 
       - name: Upload build artifacts
         if: github.event_name != 'pull_request'
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.build.file }}
-          path: ${{env.output}}
+          path: ${{ env.output }}
