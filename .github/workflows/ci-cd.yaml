@@ -84,6 +84,7 @@ jobs:
           node-version: 20
 
       - name: Set LDFlags
+
         shell: bash
         run: |
           echo "ldFlags=-s -w -h " >> $GITHUB_ENV
@@ -93,26 +94,11 @@ jobs:
 
       - name: Build Wails app
         run: |
-          wails build -tags desktop,${{ env.env }} -platform ${{matrix.build.platform}}
-
-      # - name: Build wails
-      #   uses: dAppServer/wails-build-action@v2.2
-      #   id: build
-      #   with:
-      #     build-name: ${{ matrix.build.outdir }}
-      #     build-platform: ${{ matrix.build.platform }}
-      #     package: true
-      #     sign: false
-      #     wails-version: 'v2.9.1'
-      #     node-version: 20
-      #     go-version: '1.22'
-      # - name: Build Wails app
-      #   run: |
-      #     wails build -tags desktop,${{ env.env }} -ldflags "${{ env. ldFlags }}"
+          wails build -platform ${{matrix.build.platform}}
 
       - name: Upload build artifacts
         if: github.event_name != 'pull_request'
         uses: actions/upload-artifact@v4
         with:
           name: datalogger-${{matrix.build.type}}
-          path: build/bin/*
+          path: build/bin
