@@ -94,7 +94,7 @@ jobs:
       - name: Package application
         if: matrix.build.type == 'macos'
         run: |
-          mkidr build/out
+          mkdir build/out
           tar -czf build/out/datalogger-${{matrix.build.outdir}} build/bin/
           echo "output=build/out">>$GITHUB_ENV
 
