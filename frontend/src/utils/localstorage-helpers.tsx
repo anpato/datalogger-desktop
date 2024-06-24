@@ -10,12 +10,12 @@ export class LocalStorageHelpers {
       localStorage.setItem(key, JSON.stringify(values));
   }
 
-  static getValue<V>(key: string, defaultReturn: '[]' | '{}' = '[]'): V {
+  static getValue<V>(key: string, defaultReturn: '[]' | '{}' | '' = ''): V {
     return typeof window !== 'undefined'
       ? localStorage.getItem(key)
         ? JSON.parse(localStorage.getItem(key) ?? defaultReturn)
         : JSON.parse(defaultReturn)
-      : JSON.parse(defaultReturn);
+      : '';
   }
 
   static setAll<T>(
