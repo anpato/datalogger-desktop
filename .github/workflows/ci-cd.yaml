@@ -45,14 +45,17 @@ jobs:
             platform: 'windows/amd64'
             type: amd64
             os: 'windows-latest'
+            file: 'datalogger.exe'
           - name: 'Datalogger'
             platform: 'darwin/amd64'
             type: amd64
             os: 'macos-latest'
+            file: 'Datalogger.app'
           - name: 'Datalogger'
             platform: 'darwin/arm64'
             type: arm64
             os: 'macos-latest'
+            file: 'Datalogger.app'
     runs-on: ${{matrix.build.os}}
     steps:
       - uses: actions/checkout@v4
@@ -83,14 +86,14 @@ jobs:
         with:
           build-name: ${{ matrix.build.name }}
           build-platform: ${{ matrix.build.platform }}
-          package: true
+          package: false
           sign: false
           wails-version: 'v2.9.1'
           go-version: '1.22'
 
-      # - name: Upload build artifacts
-      #   if: github.event_name != 'pull_request' || inputs.manual != true
-      #   uses: actions/upload-artifact@v4
-      #   with:
-      #     name: ${{matrix.build.name}}-${{matrix.build.os}}-${{matrix.build.type}}
-      #     path: build/bin/*
+      - name: Upload build artifacts
+        if: github.event_name != 'pull_request' || inputs.manual != true
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{matrix.build.name}}-${{matrix.build.os}}-${{matrix.build.type}}
+          path: build/bin/${{matrix.build.file}}
