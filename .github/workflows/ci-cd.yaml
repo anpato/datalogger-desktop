@@ -106,7 +106,7 @@ jobs:
           echo "filename=datalogger-${{matrix.build.type}}.tar" >> $GITHUB_ENV
 
       - name: Upload build artifacts
-        if: github.event_name != 'pull_request' && matrix.build.type == 'windows-amd64'
+        if: github.event_name != 'pull_request'
         uses: actions/upload-artifact@v4
         with:
           name: ${{env.filename}}
