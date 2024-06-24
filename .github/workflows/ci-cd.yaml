@@ -57,7 +57,7 @@ jobs:
               platform: 'darwin/universal',
               type: macos,
               os: 'macos-latest',
-              file: 'datalogger-macos-${{ needs.target-setup.outputs.env }}.app',
+              file: 'datalogger-macos-${{ needs.target-setup.outputs.env }}.tar',
               outdir: 'macos'
             }
           ]
