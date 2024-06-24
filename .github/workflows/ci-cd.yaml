@@ -43,19 +43,19 @@ jobs:
         build:
           - name: 'Datalogger'
             platform: 'windows/amd64'
-            type: amd64
+            type: windows-amd64
             os: 'windows-latest'
             file: 'datalogger.exe'
             outdir: 'windows'
           - name: 'Datalogger'
             platform: 'darwin/amd64'
-            type: amd64
+            type: macos-amd64
             os: 'macos-latest'
             file: 'Datalogger.app'
             outdir: 'amd64'
           - name: 'Datalogger'
             platform: 'darwin/arm64'
-            type: arm64
+            type: macos-arm64
             os: 'macos-latest'
             file: 'Datalogger.app'
             outdir: 'arm'
@@ -112,7 +112,7 @@ jobs:
 
       - name: Upload build artifacts
         if: github.event_name != 'pull_request'
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: datalogger-${{matrix.build.type}}
           path: build/bin/*
