@@ -89,14 +89,15 @@ jobs:
       - name: Build Wails app
         run: |
           wails build -platform ${{matrix.build.platform}}
+
       - name: Update executable
         if: matrix.build.type == 'macos'
         run: |
-          chmod +x /build/bin/Datalogger.app/Contents/MacOS/Datalogger
+          chmod +x build/bin/Datalogger.app/Contents/MacOS/Datalogger
 
       - name: Upload build artifacts
         if: github.event_name != 'pull_request'
         uses: actions/upload-artifact@v4
         with:
-          name: datalogger-${{matrix.build.type}}
+          name: datalogger-${{matrix.build.outdir}}
           path: build/bin
