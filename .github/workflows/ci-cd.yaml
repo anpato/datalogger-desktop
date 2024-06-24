@@ -41,19 +41,23 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        build:
-          - name: 'Datalogger'
-            platform: 'windows/amd64'
-            type: windows-amd64
-            os: 'windows-latest'
-            file: 'datalogger.exe'
-            outdir: 'windows'
-          - name: 'Datalogger'
-            platform: 'darwin/universal'
-            type: macos
-            os: 'macos-latest'
-            file: 'Datalogger.app'
-            outdir: 'macos'
+        build: [
+            {},
+            # - name: 'Datalogger'
+            #   platform: 'windows/amd64'
+            #   type: windows-amd64
+            #   os: 'windows-latest'
+            #   file: 'datalogger.exe'
+            #   outdir: 'windows'
+            {
+              name: 'Datalogger',
+              platform: 'darwin/universal',
+              type: macos,
+              os: 'macos-latest',
+              file: 'Datalogger.app',
+              outdir: 'macos'
+            }
+          ]
     runs-on: ${{matrix.build.os}}
     steps:
       - uses: actions/checkout@v4
