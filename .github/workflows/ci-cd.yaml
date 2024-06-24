@@ -36,6 +36,7 @@ jobs:
     environment: ${{ needs.target-setup.outputs.env }}
     env:
       env: ${{ needs.target-setup.outputs.env }}
+      output: 'build/bin'
     name: 'Build | ${{ matrix.build.os }} ${{ matrix.build.platform }}'
     strategy:
       fail-fast: false
@@ -90,14 +91,23 @@ jobs:
         run: |
           wails build -platform ${{matrix.build.platform}}
 
-      - name: Update executable
+      - name: Package application
         if: matrix.build.type == 'macos'
         run: |
-          chmod +x build/bin/Datalogger.app/Contents/MacOS/Datalogger
+          mkidr build/out
+          tar -czf build/out/datalogger-${{matrix.build.outdir}} build/bin/
+          echo "output=build/out">>$GITHUB_ENV
 
       - name: Upload build artifacts
-        if: github.event_name != 'pull_request'
+        if: github.event_name != 'pull_request' && matrix.build.type == 'windows-amd64'
         uses: actions/upload-artifact@v4
         with:
           name: datalogger-${{matrix.build.outdir}}
           path: build/bin
+
+      - name: Upload build artifacts
+        if: github.event_name != 'pull_request' && matrix.build.type == 'macos'
+        uses: actions/upload-artifact@v4
+        with:
+          name: datalogger-${{matrix.build.outdir}}
+          path: build/out/datalogger-${{matrix.build.outdir}}.tar
