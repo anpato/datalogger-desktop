@@ -36,6 +36,7 @@ jobs:
     environment: ${{ needs.target-setup.outputs.env }}
     env:
       env: ${{ needs.target-setup.outputs.env }}
+      filename: 'datalogger-${{matrix.build.type}}'
       output: 'build/bin'
     name: 'Build | ${{ matrix.build.os }} ${{ matrix.build.platform }}'
     strategy:
@@ -100,14 +101,15 @@ jobs:
         if: matrix.build.type == 'macos'
         run: |
           cd build/bin
-          tar -czf datalogger-${{matrix.build.outdir}}.tar Datalogger.app
-          echo "output=build/bin/datalogger-${{matrix.build.outdir}}.tar" >> $GITHUB_ENV
+          tar -czf datalogger-${{matrix.build.type}}.tar Datalogger.app
+          echo "output=build/bin/datalogger-${{matrix.build.type}}.tar" >> $GITHUB_ENV
+          echo "filename=datalogger-${{matrix.build.type}}.tar" >> $GITHUB_ENV
 
       - name: Upload build artifacts
         if: github.event_name != 'pull_request' && matrix.build.type == 'windows-amd64'
         uses: actions/upload-artifact@v4
         with:
-          name: datalogger-${{matrix.build.outdir}}
+          name: ${{env.filename}}
           path: ${{env.output}}
 
       # - name: Upload build artifacts
