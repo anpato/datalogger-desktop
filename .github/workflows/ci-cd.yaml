@@ -95,5 +95,5 @@ jobs:
         if: github.event_name != 'pull_request' || inputs.manual != true
         uses: actions/upload-artifact@v4
         with:
-          name: ${{matrix.build.name}}-${{matrix.build.os}}-${{matrix.build.type}}
+          name: ${{matrix.build.name}}-${{matrix.build.os}}-${{matrix.build.type}}-${{github.sha}}
           path: build/bin/${{matrix.build.file}}
