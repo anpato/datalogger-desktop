@@ -36,27 +36,28 @@ jobs:
     environment: ${{ needs.target-setup.outputs.env }}
     env:
       env: ${{ needs.target-setup.outputs.env }}
-      filename: 'datalogger-${{matrix.build.type}}'
+      filename: 'datalogger-${{matrix.build.type}}-${{needs.target-setup.outputs.env}}'
       output: 'build/bin'
     name: 'Build | ${{ matrix.build.os }} ${{ matrix.build.platform }}'
     strategy:
       fail-fast: false
       matrix:
-        build: [
-            # {
-            #   name: 'Datalogger',
-            #   platform: 'windows/amd64',
-            #   type: windows-amd64,
-            #   os: 'windows-latest',
-            #   file: 'datalogger.exe',
-            #   outdir: 'windows'
-            # },
+        build:
+          [
+            {
+              name: 'Datalogger',
+              platform: 'windows/amd64',
+              type: windows-amd64,
+              os: 'windows-latest',
+              file: 'datalogger.exe',
+              outdir: 'windows'
+            },
             {
               name: 'Datalogger',
               platform: 'darwin/universal',
               type: macos,
               os: 'macos-latest',
-              file: 'Datalogger.app',
+              file: 'datalogger-macos-${{needs.target-setup.outputs.env}}.tar',
               outdir: 'macos'
             }
           ]
@@ -84,12 +85,6 @@ jobs:
         with:
           node-version: 20
 
-      - name: Set LDFlags
-
-        shell: bash
-        run: |
-          echo "ldFlags=-s -w -h " >> $GITHUB_ENV
-
       - name: Get Wails
         run: go install github.com/wailsapp/wails/v2/cmd/wails@v2.9.1
 
@@ -102,19 +97,10 @@ jobs:
         run: |
           cd build/bin
           tar -czf datalogger-${{matrix.build.type}}.tar Datalogger.app
-          echo "output=build/bin/datalogger-${{matrix.build.type}}.tar" >> $GITHUB_ENV
-          echo "filename=datalogger-${{matrix.build.type}}.tar" >> $GITHUB_ENV
 
       - name: Upload build artifacts
         if: github.event_name != 'pull_request'
         uses: actions/upload-artifact@v4
         with:
-          name: ${{env.filename}}
+          name: ${{matrix.build.filename}}
           path: ${{env.output}}
-
-      # - name: Upload build artifacts
-      #   if: github.event_name != 'pull_request' && matrix.build.type == 'macos'
-      #   uses: actions/upload-artifact@v4
-      #   with:
-      #     name: datalogger-${{matrix.build.outdir}}
-      #     path: build/out/datalogger-${{matrix.build.outdir}}.tar
