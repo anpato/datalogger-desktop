@@ -48,17 +48,11 @@ jobs:
             file: 'datalogger.exe'
             outdir: 'windows'
           - name: 'Datalogger'
-            platform: 'darwin/amd64'
+            platform: 'darwin/universal'
             type: macos-amd64
             os: 'macos-latest'
             file: 'Datalogger.app'
-            outdir: 'amd64'
-          - name: 'Datalogger'
-            platform: 'darwin/arm64'
-            type: macos-arm64
-            os: 'macos-latest'
-            file: 'Datalogger.app'
-            outdir: 'arm'
+            outdir: 'macos'
     runs-on: ${{matrix.build.os}}
     steps:
       - uses: actions/checkout@v4
