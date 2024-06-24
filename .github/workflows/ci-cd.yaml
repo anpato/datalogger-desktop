@@ -36,7 +36,7 @@ jobs:
     environment: ${{ needs.target-setup.outputs.env }}
     env:
       env: ${{ needs.target-setup.outputs.env }}
-    name: "Build Application Binary's | ${{ matrix.build.os }} ${{ matrix.build.platform }}"
+    name: 'Build | ${{ matrix.build.os }} ${{ matrix.build.platform }}'
     strategy:
       fail-fast: false
       matrix:
@@ -84,16 +84,16 @@ jobs:
         uses: dAppServer/wails-build-action@v2.2
         id: build
         with:
-          build-name: ${{ matrix.build.name }}
+          build-name: ${{ matrix.build.file }}
           build-platform: ${{ matrix.build.platform }}
-          package: false
+          package: true
           sign: false
           wails-version: 'v2.9.1'
           go-version: '1.22'
 
-      - name: Upload build artifacts
-        if: github.event_name != 'pull_request' || inputs.manual != true
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{matrix.build.name}}-${{matrix.build.os}}-${{matrix.build.type}}-${{github.sha}}
-          path: build/bin/${{matrix.build.file}}
+      # - name: Upload build artifacts
+      #   if: github.event_name != 'pull_request' || inputs.manual != true
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: ${{matrix.build.name}}-${{matrix.build.os}}-${{matrix.build.type}}-${{github.sha}}
+      #     path: build/bin/${{matrix.build.file}}
