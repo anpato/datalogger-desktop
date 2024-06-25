@@ -1,6 +1,8 @@
 # Datalogger
 
-![](build/appicon.png)
+<p align="center">
+<img  src="build/appicon.png" />
+</p>
 
 ## What is it
 
@@ -21,6 +23,8 @@ _Don't want to install it? Theres a web based version too!_
 You can access the web based version [here](https://datalogger-production.up.railway.app).
 
 Install and open the application and get started by uploading a `.csv` file containing the data you want to view. (Excel support soon to come.)
+
+![](assets/app.png)
 
 ### Privacy Policy
 
