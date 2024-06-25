@@ -32,7 +32,6 @@ type RepoTag struct {
 	Commit struct {
 		Sha string `json:"sha"`
 	}
-	Rank int
 }
 
 type Version struct {
@@ -88,9 +87,8 @@ func (a *App) GetVersionInfo() Version {
 func RankTags(tags []RepoTag, currentVersion string) bool {
 	var isCurrent bool = false
 	var shas []string
-	for idx, tag := range tags {
-		fmt.Println(idx, tag)
-		tag.Rank = idx
+	for _, tag := range tags {
+
 		shas = append(shas, tag.Commit.Sha)
 	}
 
