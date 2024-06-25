@@ -78,7 +78,7 @@ jobs:
       - name: Build Wails app
         shell: bash
         run: |
-          wails build -tags ${{ env.env }} -ldflags "${{ env. ldFlags }}"
+          wails build -ldflags="${{ env. ldFlags }}"
           - name: Package application
 
       - name: Package application
