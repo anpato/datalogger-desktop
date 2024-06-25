@@ -56,7 +56,7 @@ jobs:
       - name: Set LDFlags
         shell: bash
         run: |
-          echo "ldFlags=-s -w -h -H -X 'main.version=${{ inputs.version }}'" >> $GITHUB_ENV
+          echo "ldFlags=-s -w -h -X 'main.version=${{ inputs.version }}'" >> $GITHUB_ENV
 
       - name: Install Go
         uses: actions/setup-go@v4
