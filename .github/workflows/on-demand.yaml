@@ -78,7 +78,7 @@ jobs:
       - name: Build Wails app
         shell: bash
         run: |
-          wails build -ldflags "-s -w -h -X 'main.version=${{ inputs.version }}'"
+          wails build -o ${{ matrix.build.outfile }} -ldflags "-s -w -h -X 'main.version=${{ inputs.version }}'"
 
       - name: Package application
         shell: bash
