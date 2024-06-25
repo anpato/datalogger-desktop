@@ -1,7 +1,7 @@
 import { ChangeEvent, useCallback, useEffect, useRef, useState } from 'react';
 import { GetVersionInfo } from '@wailsjs/go/main/App';
 import { BrowserOpenURL } from '@wailsjs/runtime';
-import { FileInput, Banner, Alert, Button } from 'flowbite-react';
+import { FileInput, Banner, Alert, Button, Footer } from 'flowbite-react';
 import { LocalStorageHelpers } from './utils/localstorage-helpers';
 import Papa from 'papaparse';
 import { uploadHandler } from './utils/upload-handler';
@@ -24,9 +24,8 @@ export default function App() {
   const [versionInfo, setValue] = useState<{
     isDismissed: boolean;
     isLatest: boolean;
-    version: string;
     currentVersion: string;
-  }>({ isDismissed: true, isLatest: true, version: '', currentVersion: '' });
+  }>({ isDismissed: true, isLatest: true, currentVersion: '' });
   const [isProcessing, toggleProcessing] = useState<boolean>(false);
   const [strokeSize, setStrokeSize] = useState<number>(2);
   const [currFile, setFile] = useState<string>('');
@@ -53,7 +52,6 @@ export default function App() {
     };
 
     setValue({
-      version: versionInfo.Version,
       isLatest: versionInfo.IsLatest,
       currentVersion: versionInfo.CurrentVersion,
       isDismissed: false
@@ -316,6 +314,16 @@ export default function App() {
           </Banner>
         )}
       </div>
+      <Footer className="fixed w-full bottom-0 rounded-none p-2 mt-4">
+        <Footer.Copyright
+          href="#"
+          by="anpato"
+          year={new Date().getFullYear()}
+        />
+        <p className="text-gray-500 dark:text-gray-400 ">
+          v{versionInfo.currentVersion}
+        </p>
+      </Footer>
     </div>
   );
 }
