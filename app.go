@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"runtime/debug"
+	"slices"
 )
 
 var version = ""
@@ -31,6 +32,7 @@ type RepoTag struct {
 	Commit struct {
 		Sha string `json:"sha"`
 	}
+	Rank int
 }
 
 type Version struct {
@@ -67,10 +69,11 @@ func (a *App) GetVersionInfo() Version {
 	}
 
 	var versionInfo Version
-
+	isCurrent := RankTags(result, version)
+	fmt.Println(isCurrent)
 	if len(result) > 0 {
 		versionInfo.CurrentVersion = version
-		versionInfo.IsLatest = result[0].Commit.Sha == version
+		versionInfo.IsLatest = isCurrent
 		versionInfo.Version = result[0].Commit.Sha
 
 	} else {
@@ -80,4 +83,22 @@ func (a *App) GetVersionInfo() Version {
 	}
 
 	return versionInfo
+}
+
+func RankTags(tags []RepoTag, currentVersion string) bool {
+	var isCurrent bool = false
+	var shas []string
+	for idx, tag := range tags {
+		fmt.Println(idx, tag)
+		tag.Rank = idx
+		shas = append(shas, tag.Commit.Sha)
+	}
+
+	if !slices.Contains(shas, currentVersion) {
+		isCurrent = true
+	} else if shas[0] != currentVersion {
+		isCurrent = false
+	}
+
+	return isCurrent
 }
