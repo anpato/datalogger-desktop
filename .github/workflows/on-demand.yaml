@@ -78,8 +78,7 @@ jobs:
       - name: Build Wails app
         shell: bash
         run: |
-          wails build -ldflags="-X 'main.version=${{ inputs.version }}'"
-          - name: Package application
+          wails build -ldflags "-s -w -h -X 'main.version=${{ inputs.version }}'"
 
       - name: Package application
         shell: bash
