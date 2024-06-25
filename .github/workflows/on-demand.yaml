@@ -58,6 +58,10 @@ jobs:
         run: |
           echo "ldFlags= -X 'main.version=${{ inputs.version }}'" >> $GITHUB_ENV
 
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 8
+
       - name: Install Go
         uses: actions/setup-go@v4
         with:
