@@ -1,4 +1,4 @@
-name: 'Release application'
+name: 'On Demand'
 on:
   workflow_dispatch:
     inputs:
