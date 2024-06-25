@@ -1,19 +1,50 @@
-# README
+# Datalogger
 
-## About
+![](build/appicon.png)
 
-This is the official Wails React-TS template.
+## What is it
 
-You can configure the project by editing `wails.json`. More information about the project settings can be found
-here: https://wails.io/docs/reference/project-config
+Easy to use datalogger assistant.
 
-## Live Development
+Upload csv telemetry data from your favorite track tools to see how your car is performing.
 
-To run in live development mode, run `wails dev` in the project directory. This will run a Vite development
-server that will provide very fast hot reload of your frontend changes. If you want to develop in a browser
-and have access to your Go methods, there is also a dev server that runs on http://localhost:34115. Connect
-to this in your browser, and you can call your Go code from devtools.
+Compare data points with different sensors to scan for any anomalies to make sure your vehicle is performing at it's best.
 
-## Building
+## How can I use it?
 
-To build a redistributable, production mode package, use `wails build`.
+Download the application for your os, mac and windows distributions are available.
+
+You can find the latest releases for the desktop version [here](https://github.com/anpato/datalogger-desktop/releases).
+
+_Don't want to install it? Theres a web based version too!_
+
+You can access the web based version [here](https://datalogger-production.up.railway.app).
+
+Install and open the application and get started by uploading a `.csv` file containing the data you want to view. (Excel support soon to come.)
+
+### Privacy Policy
+
+All data is stored locally in your browser (web based version) or on your computer (desktop versions). We will never collect any data or make copies of your files at any point without your consent.
+
+## Licensing
+
+Copyright (c) 2012-2024 Andre Pato
+
+Permission is hereby granted, free of charge, to any person obtaining
+a copy of this software and associated documentation files (the
+"Software"), to deal in the Software without restriction, including
+without limitation the rights to use, copy, modify, merge, publish,
+distribute, sublicense, and/or sell copies of the Software, and to
+permit persons to whom the Software is furnished to do so, subject to
+the following conditions:
+
+The above copyright notice and this permission notice shall be
+included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
