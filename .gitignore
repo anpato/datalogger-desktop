@@ -1,4 +1,5 @@
-build/bin
+build/
+!build/appicon.png
 node_modules
 frontend/dist
-.DS_store
+.DS_Store
