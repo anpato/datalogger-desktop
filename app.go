@@ -69,7 +69,7 @@ func (a *App) GetVersionInfo() Version {
 
 	var versionInfo Version
 	isCurrent := RankTags(result, version)
-	fmt.Println(isCurrent)
+
 	if len(result) > 0 {
 		versionInfo.CurrentVersion = version
 		versionInfo.IsLatest = isCurrent
