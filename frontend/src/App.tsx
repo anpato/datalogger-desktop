@@ -1,19 +1,7 @@
 import { ChangeEvent, useCallback, useEffect, useRef, useState } from 'react';
 
-import {
-  Button,
-  Tooltip,
-  FileInput,
-  Label,
-  Popover,
-  Sidebar,
-  Banner,
-  ToggleSwitch,
-  Drawer,
-  DrawerItems
-} from 'flowbite-react';
-import { HexColorPicker } from 'react-colorful';
-import { cn } from './utils/cn';
+import { FileInput, Banner } from 'flowbite-react';
+
 import { LocalStorageHelpers } from './utils/localstorage-helpers';
 import Papa from 'papaparse';
 import { uploadHandler } from './utils/upload-handler';
@@ -21,6 +9,7 @@ import Nav from './components/nav';
 import Heading from './components/heading';
 import { ChartData } from './constants';
 import Chart from './components/chart';
+import DataMenu from './components/data-menu';
 
 const strokeSettings = {
   min: 1,
@@ -100,9 +89,7 @@ export default function App() {
     setColor(
       LocalStorageHelpers.getValue(`${fileName ?? currFile}-colors`, '{}')
     );
-    console.log(
-      LocalStorageHelpers.getValue(`${fileName ?? currFile}-toggled`, '[]')
-    );
+
     setSelected(
       LocalStorageHelpers.getValue(`${fileName ?? currFile}-toggled`, '[]')
     );
@@ -127,6 +114,15 @@ export default function App() {
 
       setFile(fileName);
     }
+  };
+
+  const removeAllFiles = () => {
+    LocalStorageHelpers.clearAll();
+    setRecents([]);
+    setSelected([]);
+    setKeys([]);
+    setColor({});
+    setFile('');
   };
 
   useEffect(() => {
@@ -208,11 +204,13 @@ export default function App() {
     <div className="h-screen">
       <Nav
         ref={formRef}
+        currentFile={currFile}
         recentFiles={recentFiles}
         isDisabled={isDisabled}
         isProcessing={isProcessing}
         handleSelectRecent={handleSelectRecent}
         handleSubmit={handleSubmit}
+        removeFiles={removeAllFiles}
       >
         <FileInput
           ref={inputRef}
@@ -227,86 +225,30 @@ export default function App() {
         {currFile && <Heading currFile={currFile} />}
 
         {availableKeys.length ? (
-          <div className="flex lg:flex-row flex-col gap-2 w-full">
-            <div className="flex flex-col items-center gap-2">
-              <div className="flex flex-col items-center gap-1">
-                <Sidebar className="px-2 w-full max-h-[200px] lg:max-h-[300px]">
-                  <Sidebar.Items className="max-h-[200px] lg:max-h-[300px]">
-                    <Sidebar.ItemGroup>
-                      {availableKeys.map((key) => (
-                        <Sidebar.Item
-                          key={key}
-                          className="flex flex-row w-full"
-                        >
-                          <div className="flex gap-2 justify-between">
-                            <Label className={`mx-2 flex gap-2`}>
-                              <span>
-                                {' '}
-                                <Tooltip content="Click to pick a color">
-                                  <Popover
-                                    content={
-                                      <HexColorPicker
-                                        color={selectedColors[key] ?? '#3182bd'}
-                                        onChange={(color) =>
-                                          handleColorChange(color, key)
-                                        }
-                                      />
-                                    }
-                                  >
-                                    <div
-                                      style={{
-                                        pointerEvents: !selectedKeys.includes(
-                                          key
-                                        )
-                                          ? 'none'
-                                          : 'auto',
-                                        opacity: selectedKeys.includes(key)
-                                          ? '1.0'
-                                          : '0.2',
-                                        backgroundColor:
-                                          selectedColors[key] ?? '#3182bd'
-                                      }}
-                                      className={cn(
-                                        'cursor-pointer h-6 w-6 rounded-full'
-                                      )}
-                                    ></div>
-                                  </Popover>
-                                </Tooltip>
-                              </span>
-                              <Tooltip content={key} placement="right">
-                                {key.length > 25
-                                  ? key.substring(0, 20) + '...'
-                                  : key}
-                              </Tooltip>
-                            </Label>
-
-                            <ToggleSwitch
-                              color="success"
-                              className="cursor-pointer"
-                              checked={selectedKeys.includes(key)}
-                              onChange={(isToggled) =>
-                                handleSwitchToggle(isToggled, key)
-                              }
-                            />
-                          </div>
-                        </Sidebar.Item>
-                      ))}
-                    </Sidebar.ItemGroup>
-                  </Sidebar.Items>
-                </Sidebar>
-                <p className="font-light">
-                  <code className="underline">{availableKeys.length}</code> data
-                  points availabe
+          <>
+            <div className="flex flex-row justify-center gap-2 px-4 mt-4">
+              <div>
+                <DataMenu
+                  availableKeys={availableKeys}
+                  selectedColors={selectedColors}
+                  selectedKeys={selectedKeys}
+                  handleColorChange={handleColorChange}
+                  handleSwitchToggle={handleSwitchToggle}
+                />
+                <p className="prose text-center">
+                  <span className="underline">{selectedKeys.length}</span> data
+                  points selected
                 </p>
               </div>
             </div>
+
             <Chart
               chartData={chartData}
               strokeSize={strokeSize}
               selectedKeys={selectedKeys}
               selectedColors={selectedColors}
             />
-          </div>
+          </>
         ) : (
           <Banner className="">
             <div className="w-[80%] mx-auto border rounded-md border-gray-200 bg-gray-50 p-4 dark:border-gray-600 dark:bg-gray-700">

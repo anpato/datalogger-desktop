@@ -34,4 +34,8 @@ export class LocalStorageHelpers {
       );
     }
   }
+
+  static clearAll() {
+    return typeof window !== 'undefined' && localStorage.clear();
+  }
 }

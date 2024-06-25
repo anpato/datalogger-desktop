@@ -7,14 +7,18 @@ import {
 } from 'flowbite-react';
 import { ReactNode, forwardRef } from 'react';
 import icon from '~/assets/icon.svg';
+import { cn } from '../utils/cn';
+import { Trash } from 'lucide-react';
 
 type IProps = {
   recentFiles: string[];
-  handleSelectRecent: (file: string) => void;
-  handleSubmit: () => void;
   isProcessing: boolean;
   isDisabled: boolean;
   children: ReactNode;
+  currentFile: string;
+  handleSelectRecent: (file: string) => void;
+  handleSubmit: () => void;
+  removeFiles: () => void;
 };
 
 const Nav = forwardRef<HTMLFormElement | null, IProps>(
@@ -25,6 +29,8 @@ const Nav = forwardRef<HTMLFormElement | null, IProps>(
       handleSubmit,
       isDisabled,
       isProcessing,
+      currentFile,
+      removeFiles,
       children
     },
     formRef
@@ -41,15 +47,36 @@ const Nav = forwardRef<HTMLFormElement | null, IProps>(
 
         <Navbar.Collapse>
           <div className="flex flex-col-reverse md:flex-row gap-4 items-center">
-            <Dropdown inline label="Recent files" className="dark:text-white">
+            <Dropdown label="Recent files" className="dark:text-white">
               {recentFiles?.map((file) => (
                 <Dropdown.Item
+                  style={
+                    currentFile === file
+                      ? {
+                          pointerEvents: 'none',
+                          cursor: 'default',
+                          opacity: 0.5
+                        }
+                      : {}
+                  }
+                  className={cn(
+                    currentFile === file && ['pointer-events-none']
+                  )}
                   onClick={() => handleSelectRecent(file)}
                   key={file}
                 >
                   {file}
                 </Dropdown.Item>
               ))}
+              {recentFiles.length ? (
+                <>
+                  <Dropdown.Divider />
+
+                  <Dropdown.Item onClick={removeFiles}>
+                    <Trash className="mr-2 text-red-500" /> Remove all files
+                  </Dropdown.Item>
+                </>
+              ) : null}
               {!recentFiles.length && (
                 <DropdownItem className="cursor-default" disabled>
                   No recent files
