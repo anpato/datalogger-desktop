@@ -1,7 +1,7 @@
 import { ChangeEvent, useCallback, useEffect, useRef, useState } from 'react';
-
-import { FileInput, Banner } from 'flowbite-react';
-
+import { GetVersionInfo } from '@wailsjs/go/main/App';
+import { BrowserOpenURL } from '@wailsjs/runtime';
+import { FileInput, Banner, Alert, Button } from 'flowbite-react';
 import { LocalStorageHelpers } from './utils/localstorage-helpers';
 import Papa from 'papaparse';
 import { uploadHandler } from './utils/upload-handler';
@@ -21,6 +21,12 @@ export default function App() {
   const [selectedColors, setColor] = useState<{
     [key: string]: string;
   }>({});
+  const [versionInfo, setValue] = useState<{
+    isDismissed: boolean;
+    isLatest: boolean;
+    version: string;
+    currentVersion: string;
+  }>({ isDismissed: true, isLatest: true, version: '', currentVersion: '' });
   const [isProcessing, toggleProcessing] = useState<boolean>(false);
   const [strokeSize, setStrokeSize] = useState<number>(2);
   const [currFile, setFile] = useState<string>('');
@@ -38,6 +44,25 @@ export default function App() {
       setRecents(JSON.parse(localStorage.getItem('files') ?? '[]') ?? []);
     }
   }, [globalThis.window]);
+
+  const getVersionData = async () => {
+    const versionInfo = (await GetVersionInfo()) as {
+      Version: string;
+      IsLatest: boolean;
+      CurrentVersion: string;
+    };
+
+    setValue({
+      version: versionInfo.Version,
+      isLatest: versionInfo.IsLatest,
+      currentVersion: versionInfo.CurrentVersion,
+      isDismissed: false
+    });
+  };
+
+  useEffect(() => {
+    getVersionData();
+  }, []);
 
   const handleSetData = (fetchedData: {
     fileName: string;
@@ -199,9 +224,40 @@ export default function App() {
       });
     }
   };
+  const shouldShowAlert = !versionInfo.isLatest && !versionInfo.isDismissed;
 
   return (
     <div className="h-screen">
+      {shouldShowAlert && (
+        <Alert
+          onDismiss={() => setValue((prev) => ({ ...prev, isDismissed: true }))}
+          additionalContent={
+            <div className="flex gap-2">
+              <Button
+                size="xs"
+                onClick={() =>
+                  BrowserOpenURL(
+                    'https://github.com/anpato/datalogger-desktop/releases/'
+                  )
+                }
+              >
+                Update now
+              </Button>
+              <Button
+                onClick={() =>
+                  setValue((prev) => ({ ...prev, isDismissed: true }))
+                }
+                color="gray"
+                size="xs"
+              >
+                Dismiss
+              </Button>
+            </div>
+          }
+        >
+          <h2 className="text-lg">Version update available</h2>
+        </Alert>
+      )}
       <Nav
         ref={formRef}
         currentFile={currFile}
