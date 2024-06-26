@@ -78,7 +78,7 @@ jobs:
       - name: Build Wails app
         shell: bash
         run: |
-          wails build  -ldflags "-w -s -H windowsgui-X 'main.version=${{ inputs.version }}'"
+          wails build  -ldflags "-w -s -H windowsgui -X 'main.version=${{ inputs.version }}'"
 
       - name: Package application
         shell: bash
