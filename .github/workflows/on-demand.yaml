@@ -8,38 +8,9 @@ on:
         required: true
 
 jobs:
-  create-release:
-    name: Create release ${{ inputs.version }}
-    runs-on: ['ubuntu-latest']
-    permissions:
-      contents: write
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: ${{ github.ref_name }}
-      # - name: Create Release
-      #   uses: softprops/action-gh-release@v2
-      #   id: release
-      #   with:
-      #     name: release/${{ inputs.version }}
-      #     tag_name: ${{ inputs.version }}
-      #     fail_on_unmatched_files: true
-      #     make_latest: 'true'
-      #     generate_release_notes: true
-      - name: Update App Version
-        shell: bash
-        run: |
-          git config --global user.email "gha@datalogger.app"
-          git config --global user.name "GHA"  
-          echo "VERSION=${{ inputs.version }}" >> .env
-          git add .env
-          git commit -m 'update version'
-          git push
-
   build-app:
-    needs: ['create-release']
-    name: 'Build Application Binary version: ${{ github.sha }}'
-    runs-on: ${{matrix.build.os}}
+    name: 'Build Application | ${{ matrix.build.platform }}'
+    runs-on: ${{ matrix.build.os }}
     env:
       output: 'build/bin'
     strategy:
@@ -93,10 +64,3 @@ jobs:
         with:
           name: ${{ matrix.build.file }}
           path: ${{ env.output }}/${{ matrix.build.file }}.tar
-
-      # - name: Upload assets
-      #   shell: bash
-      #   env:
-      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      #   run: |
-      #     gh release upload ${{ inputs.version }} build/bin/${{ matrix.build.file }}.tar
