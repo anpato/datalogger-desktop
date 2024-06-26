@@ -6,7 +6,10 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"os"
 	"strings"
+
+	"github.com/joho/godotenv"
 )
 
 var version = "v1.0.3"
@@ -47,8 +50,16 @@ func (a *App) startup(ctx context.Context) {
 	a.ctx = ctx
 }
 
-func (a *App) GetVersionInfo() Version {
+func LoadEnvironment() {
+	godotenv.Load(".env")
+
+	version = os.Getenv("VERSION")
 	version = strings.Replace(version, "v", "", -1)
+}
+
+func (a *App) GetVersionInfo() Version {
+	LoadEnvironment()
+
 	res, err := http.Get("https://api.github.com/repos/anpato/datalogger-desktop/tags")
 	if err != nil {
 		fmt.Printf("Error retrieving version info: %s", err)
@@ -78,8 +89,7 @@ func RankTags(tags []RepoTag, currentVersion string) bool {
 
 		versions = append(versions, strings.Replace(tag.Name, "v", "", -1))
 	}
-	fmt.Println(versions)
-	// fmt.Println(versions[0], currentVersion)
+
 	if len(versions) > 0 && versions[0] == currentVersion {
 		isCurrent = true
 	} else if len(versions) == 0 {
