@@ -34,7 +34,7 @@ jobs:
           echo "VERSION=${{ inputs.version }}" >> .env
           git add .env
           git commit -m 'update version'
-          git push ${{ github.ref_name }}
+          git push
 
   build-app:
     needs: ['create-release']
