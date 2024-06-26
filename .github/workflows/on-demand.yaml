@@ -78,13 +78,14 @@ jobs:
       - name: Build Wails app
         shell: bash
         run: |
-          wails build -ldflags "-X 'main.version=${{ inputs.version }}'"
+          wails build -ldflags "-w -s -H windowsgui -X 'main.version=${{ inputs.version }}'"
 
       - name: Package application
         shell: bash
         run: |
           cd build/bin
           tar -czvf ${{ matrix.build.file }}.tar ${{ matrix.build.outfile }}
+
       - name: Check files
         shell: bash
         run: |
