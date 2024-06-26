@@ -225,7 +225,7 @@ export default function App() {
   const shouldShowAlert = !versionInfo.isLatest && !versionInfo.isDismissed;
 
   return (
-    <div className="h-screen">
+    <div className="h-full">
       {shouldShowAlert && (
         <Alert
           onDismiss={() => setValue((prev) => ({ ...prev, isDismissed: true }))}
@@ -314,7 +314,7 @@ export default function App() {
           </Banner>
         )}
       </div>
-      <Footer className="fixed w-full bottom-0 rounded-none p-2 mt-4">
+      <Footer className="sticky w-full bottom-0 rounded-none p-2 mt-4">
         <Footer.Copyright
           href="#"
           by="anpato"
