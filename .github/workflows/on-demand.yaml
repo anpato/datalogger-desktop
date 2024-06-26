@@ -8,24 +8,24 @@ on:
         required: true
 
 jobs:
-  create-release:
-    name: Create release ${{ inputs.version }}
-    runs-on: ['ubuntu-latest']
-    outputs:
-      url: ${{steps.release.outputs.upload_url}}
-    steps:
-      - name: Create Release
-        uses: softprops/action-gh-release@v2
-        id: release
-        with:
-          name: release/${{ inputs.version }}
-          tag_name: ${{ inputs.version }}
-          fail_on_unmatched_files: true
-          make_latest: 'true'
-          generate_release_notes: true
+  # create-release:
+  #   name: Create release ${{ inputs.version }}
+  #   runs-on: ['ubuntu-latest']
+  #   outputs:
+  #     url: ${{steps.release.outputs.upload_url}}
+  #   steps:
+  #     - name: Create Release
+  #       uses: softprops/action-gh-release@v2
+  #       id: release
+  #       with:
+  #         name: release/${{ inputs.version }}
+  #         tag_name: ${{ inputs.version }}
+  #         fail_on_unmatched_files: true
+  #         make_latest: 'true'
+  #         generate_release_notes: true
 
   build-app:
-    needs: ['create-release']
+    # needs: ['create-release']
     name: 'Build Application Binary version: ${{ github.sha }}'
     runs-on: ${{matrix.build.os}}
     env:
@@ -78,13 +78,17 @@ jobs:
       - name: Build Wails app
         shell: bash
         run: |
-          wails build -o ${{ matrix.build.outfile }} -ldflags "-s -w -h -X 'main.version=${{ inputs.version }}'"
+          wails build  -ldflags "-w -s -H windowsgui-X 'main.version=${{ inputs.version }}'"
 
       - name: Package application
         shell: bash
         run: |
           cd build/bin
           tar -czvf ${{ matrix.build.file }}.tar ${{ matrix.build.outfile }}
+      - name: Check files
+        shell: bash
+        run: |
+          ls build/bin
 
       - name: Upload build artifacts
         if: github.event_name != 'pull_request'
