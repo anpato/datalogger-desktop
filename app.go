@@ -10,7 +10,7 @@ import (
 )
 
 // Bump this on release
-var version = "v1.0.3"
+var version = "v1.0.1"
 
 // App struct
 type App struct {
