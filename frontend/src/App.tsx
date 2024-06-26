@@ -225,7 +225,7 @@ export default function App() {
   const shouldShowAlert = !versionInfo.isLatest && !versionInfo.isDismissed;
 
   return (
-    <div className="h-full">
+    <div className="h-screen">
       {shouldShowAlert && (
         <Alert
           onDismiss={() => setValue((prev) => ({ ...prev, isDismissed: true }))}
@@ -275,7 +275,7 @@ export default function App() {
           onChange={detectChange}
         />
       </Nav>
-      <div className="w-full my-6">
+      <div className="w-full h-full mt-6">
         {currFile && <Heading currFile={currFile} />}
 
         {availableKeys.length ? (
