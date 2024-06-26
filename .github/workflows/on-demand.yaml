@@ -11,9 +11,8 @@ jobs:
   create-release:
     name: Create release ${{ inputs.version }}
     runs-on: ['ubuntu-latest']
-    outputs:
-      url: ${{steps.release.outputs.upload_url}}
     steps:
+      - uses: actions/checkout@v4
       # - name: Create Release
       #   uses: softprops/action-gh-release@v2
       #   id: release
