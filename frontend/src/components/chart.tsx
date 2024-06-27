@@ -16,7 +16,8 @@ const Chart: FC<{
   selectedKeys: string[];
   strokeSize: number;
   selectedColors: { [key: string]: string };
-}> = ({ chartData, selectedKeys, strokeSize, selectedColors }) => {
+  axisLabels: { x: string; y: string };
+}> = ({ chartData, selectedKeys, strokeSize, selectedColors, axisLabels }) => {
   return (
     <div className="w-full mx-0">
       <ResponsiveContainer className="h-full p-2" width={'100%'} height={900}>
@@ -24,7 +25,7 @@ const Chart: FC<{
           {!selectedKeys.length ? <h3>Select options from the right</h3> : null}
           <Brush
             style={{ width: '80%' }}
-            className="[&>rect]:stroke-slate-400 [&>rect]:fill-slate-200 dark:[&>rect]:fill-slate-700"
+            className="[&>rect]:stroke-slate-400 [&>rect]:fill-slate-200 dark:[&>rect]:fill-slate-700 "
           />
           <ChartTip />
           {selectedKeys.map((key) => {
@@ -45,13 +46,31 @@ const Chart: FC<{
           })}
           <Legend verticalAlign="top" />
           <YAxis
-            hide={true}
-            type="number"
+            dataKey={axisLabels.y}
+            hide={!axisLabels.y}
             tick={false}
+            label={
+              <text
+                textAnchor="middle"
+                x={0}
+                dx={500}
+                y={0}
+                className="rotate-90"
+              >
+                {axisLabels.y}
+              </text>
+            }
+            type="number"
             scale="auto"
             domain={['auto', 'auto']}
           />
-          <XAxis hide={true} tick={false} label={''} dataKey={'Time (msec)'} />
+          <XAxis
+            axisLine={false}
+            hide={!axisLabels.x}
+            tick={false}
+            label={axisLabels.x}
+            dataKey={axisLabels.x}
+          />
         </LineChart>
       </ResponsiveContainer>
     </div>

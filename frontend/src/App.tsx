@@ -9,7 +9,8 @@ import Nav from './components/nav';
 import Heading from './components/heading';
 import { ChartData } from './constants';
 import Chart from './components/chart';
-import DataMenu from './components/data-menu';
+
+import ActionMenu from './components/action-menu';
 
 const strokeSettings = {
   min: 1,
@@ -37,6 +38,10 @@ export default function App() {
   );
   const formRef = useRef<HTMLFormElement | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
+  const [labels, setLabels] = useState<{ x: string; y: string }>({
+    x: '',
+    y: ''
+  });
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -61,6 +66,14 @@ export default function App() {
   useEffect(() => {
     getVersionData();
   }, []);
+
+  const setAxisLabels = (action: 'x' | 'y' | 'clear', key?: string) => {
+    if (action === 'clear') {
+      setLabels({ x: '', y: '' });
+    }
+
+    setLabels((prev) => ({ ...prev, [action]: key ?? '' }));
+  };
 
   const handleSetData = (fetchedData: {
     fileName: string;
@@ -280,23 +293,18 @@ export default function App() {
 
         {availableKeys.length ? (
           <>
-            <div className="flex flex-row justify-center gap-2 px-4 mt-4">
-              <div>
-                <DataMenu
-                  availableKeys={availableKeys}
-                  selectedColors={selectedColors}
-                  selectedKeys={selectedKeys}
-                  handleColorChange={handleColorChange}
-                  handleSwitchToggle={handleSwitchToggle}
-                />
-                <p className="prose text-center">
-                  <span className="underline">{selectedKeys.length}</span> data
-                  points selected
-                </p>
-              </div>
-            </div>
+            <ActionMenu
+              axisLabels={labels}
+              availableKeys={availableKeys}
+              selectedColors={selectedColors}
+              selectedKeys={selectedKeys}
+              handleColorChange={handleColorChange}
+              handleSwitchToggle={handleSwitchToggle}
+              setAxisLabels={setAxisLabels}
+            />
 
             <Chart
+              axisLabels={labels}
               chartData={chartData}
               strokeSize={strokeSize}
               selectedKeys={selectedKeys}
@@ -314,7 +322,7 @@ export default function App() {
           </Banner>
         )}
       </div>
-      <Footer className="sticky w-full bottom-0 rounded-none p-2 mt-4">
+      <Footer className="sticky w-full bottom-0 rounded-none py-2 px-6 mt-4">
         <Footer.Copyright
           href="#"
           by="anpato"
