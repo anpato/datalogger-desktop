@@ -6,7 +6,10 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"os"
 	"strings"
+
+	"github.com/adrg/xdg"
 )
 
 // Bump this on release
@@ -48,6 +51,7 @@ func (a *App) startup(ctx context.Context) {
 }
 
 func (a *App) GetVersionInfo() Version {
+
 	version = strings.Replace(version, "v", "", -1)
 	res, err := http.Get("https://api.github.com/repos/anpato/datalogger-desktop/tags")
 	if err != nil {
@@ -85,4 +89,44 @@ func RankTags(tags []RepoTag, sha string) bool {
 	}
 
 	return isCurrent
+}
+
+func ConstructFileGet() string {
+
+	storageDirectory := fmt.Sprintf("%s/datalogger/config.json", xdg.UserDirs.Documents)
+
+	configFile, err := xdg.ConfigFile(storageDirectory)
+	if err != nil {
+		fmt.Println("Failed to get config file", err)
+	}
+
+	return configFile
+}
+
+func GetFile(filename string) string {
+
+	b, err := ioutil.ReadFile(filename)
+	if err != nil {
+		fmt.Println("Failed to load config file")
+	}
+	var result = string(b)
+
+	return result
+}
+
+func (a *App) StoreResult(data map[string]interface{}) {
+
+	configFile := ConstructFileGet()
+	jsonString, _ := json.Marshal(data)
+	ioutil.WriteFile(configFile, jsonString, os.ModePerm)
+
+}
+
+// Returns stringified json values stored for user
+func (a *App) GetResult() string {
+
+	configFile := ConstructFileGet()
+	fileData := GetFile(configFile)
+
+	return fileData
 }

@@ -1,41 +1,28 @@
+import { GetResult, StoreResult } from '@wailsjs/go/main/App';
+import { ChartData } from '../constants';
+
+type JsonData = {
+  [key: string]: string[] | Record<string, string | string[] | ChartData>;
+};
+
 export class LocalStorageHelpers {
-  static setValues(
-    key: string,
-    values:
-      | string[]
-      | { [key: string]: number | string }[]
-      | { [key: string]: string }
-  ) {
-    typeof window !== 'undefined' &&
-      localStorage.setItem(key, JSON.stringify(values));
+  static async setValues(values: JsonData) {
+    await StoreResult(values);
   }
 
-  static getValue<V>(key: string, defaultReturn: '[]' | '{}' | '' = ''): V {
-    return typeof window !== 'undefined'
-      ? localStorage.getItem(key)
-        ? JSON.parse(localStorage.getItem(key) ?? defaultReturn)
-        : JSON.parse(defaultReturn)
-      : '';
-  }
+  static async getValue<V = JsonData>(
+    defaultReturn: '[]' | '{}' | '' = '{}'
+  ): Promise<V> {
+    const data = await GetResult();
 
-  static setAll<T>(
-    entrys: Record<
-      string,
-      | string[]
-      | { [key: string]: number | string }[]
-      | { [key: string]: string }
-      | T
-    >
-  ) {
-    for (const key in entrys) {
-      LocalStorageHelpers.setValues(
-        key,
-        entrys[key] as { [key: string]: number | string }[]
-      );
+    if (!data) {
+      return JSON.parse(defaultReturn);
     }
+
+    return JSON.parse(data) ?? JSON.parse(defaultReturn);
   }
 
-  static clearAll() {
-    return typeof window !== 'undefined' && localStorage.clear();
+  static async clearAll() {
+    return await StoreResult({});
   }
 }
