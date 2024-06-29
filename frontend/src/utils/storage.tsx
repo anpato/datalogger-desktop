@@ -5,13 +5,13 @@ type JsonData = {
   [key: string]: string[] | Record<string, string | string[] | ChartData>;
 };
 
-export class LocalStorageHelpers {
+export class Storage {
   static async setValues(values: JsonData) {
     await StoreResult(values);
   }
 
   static async getValue<V = JsonData>(
-    defaultReturn: '[]' | '{}' | '' = '{}'
+    defaultReturn: '[]' | '{}' = '{}'
   ): Promise<V> {
     const data = await GetResult();
 

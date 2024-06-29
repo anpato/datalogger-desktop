@@ -119,7 +119,6 @@ func (a *App) StoreResult(data map[string]interface{}) {
 	configFile := ConstructFileGet()
 	jsonString, _ := json.Marshal(data)
 	ioutil.WriteFile(configFile, jsonString, os.ModePerm)
-
 }
 
 // Returns stringified json values stored for user

@@ -9,7 +9,7 @@ import {
 import { GetVersionInfo } from '@wailsjs/go/main/App';
 import { BrowserOpenURL } from '@wailsjs/runtime';
 import { FileInput, Banner, Alert, Button, Footer } from 'flowbite-react';
-import { LocalStorageHelpers } from './utils/localstorage-helpers';
+import { Storage } from './utils/storage';
 import Papa from 'papaparse';
 import { uploadHandler } from './utils/upload-handler';
 import Nav from './components/nav';
@@ -109,7 +109,7 @@ export default function App() {
 
   useEffect(() => {
     async function getRecents() {
-      const rec = await LocalStorageHelpers.getValue();
+      const rec = await Storage.getValue();
 
       dispatch({
         type: Actions.SET_FILES,
@@ -150,7 +150,7 @@ export default function App() {
     records: { [key: string]: string | number }[];
     headers: string[];
   }) => {
-    const currentData = await LocalStorageHelpers.getValue<{
+    const currentData = await Storage.getValue<{
       files: string[];
       [key: string]: {};
     }>();
@@ -162,16 +162,14 @@ export default function App() {
     setKeys(fetchedData.headers);
     dispatch({ type: Actions.SET_CHART, payload: fetchedData.records });
 
-    await LocalStorageHelpers.setValues({
+    await Storage.setValues({
       ...currentData,
       files: currentData.files
         ? [...(currentData.files ?? []), fetchedData.fileName]
         : [fetchedData.fileName],
       [fetchedData.fileName]: {
         fileName: fetchedData.fileName,
-        headers: fetchedData.headers.filter(
-          (key) => !key.toLowerCase().includes('time')
-        ),
+        headers: fetchedData.headers,
         records: fetchedData.records
       }
     });
@@ -187,7 +185,7 @@ export default function App() {
   };
 
   const handleDefaultPrefs = async (fileName?: string) => {
-    const currentStore = await LocalStorageHelpers.getValue();
+    const currentStore = await Storage.getValue();
     dispatch({
       type: Actions.UPDATE_COLORS,
       payload:
@@ -212,7 +210,7 @@ export default function App() {
 
   const handleSelectRecent = async (fileName: string) => {
     const fileData =
-      (await LocalStorageHelpers.getValue<{
+      (await Storage.getValue<{
         fileName: string;
         headers: string[];
         records: { [key: string]: string | number }[];
@@ -242,7 +240,7 @@ export default function App() {
   };
 
   const removeAllFiles = () => {
-    LocalStorageHelpers.clearAll();
+    Storage.clearAll();
     dispatch({ type: Actions.RESET, payload: null });
     setKeys([]);
   };
@@ -262,8 +260,8 @@ export default function App() {
       payload: keys
     });
 
-    const curr = await LocalStorageHelpers.getValue();
-    LocalStorageHelpers.setValues({
+    const curr = await Storage.getValue();
+    Storage.setValues({
       ...curr,
       [`${store.currFile}-toggled`]: keys
     });
@@ -278,8 +276,8 @@ export default function App() {
       type: Actions.UPDATE_COLORS,
       payload
     });
-    const curr = await LocalStorageHelpers.getValue();
-    LocalStorageHelpers.setValues({
+    const curr = await Storage.getValue();
+    Storage.setValues({
       ...curr,
       [`${store.currFile}-colors`]: payload
     });
@@ -332,7 +330,7 @@ export default function App() {
   const shouldShowAlert = !versionInfo.isLatest && !versionInfo.isDismissed;
 
   return (
-    <div className="h-screen">
+    <div>
       {shouldShowAlert && (
         <Alert
           onDismiss={() => setValue((prev) => ({ ...prev, isDismissed: true }))}
@@ -390,14 +388,13 @@ export default function App() {
             <ActionMenu
               axisLabels={labels}
               availableKeys={availableKeys}
-              selectedColors={store.selectedColors}
               selectedKeys={store.selectedKeys}
-              handleColorChange={handleColorChange}
               handleSwitchToggle={handleSwitchToggle}
               setAxisLabels={setAxisLabels}
             />
 
             <Chart
+              handleColorChange={handleColorChange}
               axisLabels={labels}
               chartData={store.chartData}
               strokeSize={strokeSize}

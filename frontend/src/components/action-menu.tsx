@@ -5,9 +5,7 @@ import { Check } from 'lucide-react';
 
 type IProps = {
   availableKeys: string[];
-  selectedColors: { [key: string]: string };
   selectedKeys: string[];
-  handleColorChange: (color: string, key: string) => void;
   handleSwitchToggle: (isToggled: boolean, key: string) => void;
   setAxisLabels: (action: 'x' | 'y' | 'clear', key?: string) => void;
   axisLabels: { x: string; y: string };
@@ -15,8 +13,6 @@ type IProps = {
 
 const ActionMenu: FC<IProps> = ({
   availableKeys,
-  selectedColors,
-  handleColorChange,
   selectedKeys,
   handleSwitchToggle,
   setAxisLabels,
@@ -24,23 +20,7 @@ const ActionMenu: FC<IProps> = ({
 }) => {
   return (
     <div className="flex flex-row justify-center items-start gap-2 px-4 mt-4">
-      <div className="flex flex-row gap-2">
-        <Dropdown outline label="Y Axis">
-          {availableKeys.map((key) => (
-            <DropdownItem
-              className="flex justify-between"
-              onClick={() =>
-                axisLabels.y && axisLabels.y === key
-                  ? setAxisLabels('clear')
-                  : setAxisLabels('y', key)
-              }
-              key={key}
-            >
-              {key}
-              {axisLabels.y === key && <Check />}
-            </DropdownItem>
-          ))}
-        </Dropdown>
+      <div className="flex flex-row gap-2 items-center">
         <Dropdown outline label="X Axis">
           {availableKeys.map((key) => (
             <DropdownItem
@@ -61,9 +41,7 @@ const ActionMenu: FC<IProps> = ({
       <div>
         <DataMenu
           availableKeys={availableKeys}
-          selectedColors={selectedColors}
           selectedKeys={selectedKeys}
-          handleColorChange={handleColorChange}
           handleSwitchToggle={handleSwitchToggle}
         />
         <p className="prose text-center">

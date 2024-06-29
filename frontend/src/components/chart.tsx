@@ -7,9 +7,12 @@ import {
   ResponsiveContainer,
   Tooltip as ChartTip,
   Brush,
-  Legend
+  Legend,
+  LegendProps,
+  Label
 } from 'recharts';
 import { ChartData } from '../constants';
+import CustomLegend from './custom-legend';
 
 const Chart: FC<{
   chartData: ChartData;
@@ -17,15 +20,24 @@ const Chart: FC<{
   strokeSize: number;
   selectedColors: { [key: string]: string };
   axisLabels: { x: string; y: string };
-}> = ({ chartData, selectedKeys, strokeSize, selectedColors, axisLabels }) => {
+  handleColorChange: (color: string, key: string) => void;
+}> = ({
+  chartData,
+  selectedKeys,
+  handleColorChange,
+  strokeSize,
+  selectedColors,
+  axisLabels
+}) => {
   return (
     <div className="w-full mx-0">
       <ResponsiveContainer className="h-full p-2" width={'100%'} height={900}>
-        <LineChart className="border-2 py-2 rounded-lg" data={chartData}>
+        <LineChart className="p-6 border-2 rounded-md" data={chartData}>
           {!selectedKeys.length ? <h3>Select options from the right</h3> : null}
           <Brush
-            style={{ width: '80%' }}
-            className="[&>rect]:stroke-slate-400 [&>rect]:fill-slate-200 dark:[&>rect]:fill-slate-700 "
+            y={40}
+            height={30}
+            className="[&>rect]:stroke-slate-400 [&>rect]:fill-slate-200 dark:[&>rect]:fill-slate-700 my-10"
           />
           <ChartTip />
           {selectedKeys.map((key) => {
@@ -44,7 +56,17 @@ const Chart: FC<{
               />
             );
           })}
-          <Legend verticalAlign="top" />
+          <Legend
+            verticalAlign="top"
+            formatter={(value) => (
+              <CustomLegend
+                value={value}
+                handleColorChange={handleColorChange}
+                selectedColors={selectedColors}
+              />
+            )}
+          />
+
           <YAxis
             dataKey={axisLabels.y}
             hide={!axisLabels.y}
@@ -65,12 +87,17 @@ const Chart: FC<{
             domain={['auto', 'auto']}
           />
           <XAxis
+            padding="gap"
+            dy={10}
+            angle={-10}
             axisLine={false}
             hide={!axisLabels.x}
-            tick={false}
-            label={axisLabels.x}
+            tick={!!axisLabels.x}
+            // label={axisLabels.x}
             dataKey={axisLabels.x}
-          />
+          >
+            <Label dy={40} className="mx-20" value={axisLabels.x} offset={20} />
+          </XAxis>
         </LineChart>
       </ResponsiveContainer>
     </div>
