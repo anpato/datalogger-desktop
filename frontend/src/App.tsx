@@ -1,48 +1,123 @@
-import { ChangeEvent, useCallback, useEffect, useRef, useState } from 'react';
+import {
+  ChangeEvent,
+  useCallback,
+  useEffect,
+  useReducer,
+  useRef,
+  useState
+} from 'react';
 import { GetVersionInfo } from '@wailsjs/go/main/App';
 import { BrowserOpenURL } from '@wailsjs/runtime';
 import { FileInput, Banner, Alert, Button, Footer } from 'flowbite-react';
-import { LocalStorageHelpers } from './utils/localstorage-helpers';
+import { Storage } from './utils/storage';
 import Papa from 'papaparse';
 import { uploadHandler } from './utils/upload-handler';
 import Nav from './components/nav';
 import Heading from './components/heading';
 import { ChartData } from './constants';
 import Chart from './components/chart';
-import DataMenu from './components/data-menu';
+
+import ActionMenu from './components/action-menu';
 
 const strokeSettings = {
   min: 1,
   max: 4
 };
 
+enum Actions {
+  SET_FILE = 'SET_FILE',
+  UPDATE_COLORS = 'UPDATE_COLORS',
+  SET_CHART = 'SET_CHART',
+  UPDATE_KEYS = 'UPDATE_KEYS',
+  SET_FILES = 'SET_FILES',
+  RESET = 'RESET'
+}
+
+type Action =
+  | {
+      type: Actions.SET_FILE;
+      payload: string;
+    }
+  | {
+      type: Actions.UPDATE_COLORS;
+      payload: { [key: string]: string };
+    }
+  | { type: Actions.SET_CHART; payload: ChartData }
+  | { type: Actions.UPDATE_KEYS; payload: string[] }
+  | { type: Actions.SET_FILES; payload: string[] }
+  | { type: Actions.RESET; payload: null };
+
+type Store = {
+  recentFiles: string[];
+  selectedKeys: string[];
+  currFile: string;
+  selectedColors: { [key: string]: string };
+  chartData: ChartData;
+};
+
+const IState: Store = {
+  recentFiles: [],
+  selectedKeys: [],
+  currFile: '',
+  selectedColors: {},
+  chartData: []
+};
+
+const reducer = (state: Store, { type, payload }: Action): Store => {
+  switch (type) {
+    case 'SET_FILE':
+      return { ...state, currFile: payload };
+    case 'UPDATE_COLORS':
+      return {
+        ...state,
+        selectedColors: { ...state.selectedColors, ...payload }
+      };
+    case 'SET_FILES':
+      return { ...state, recentFiles: payload };
+    case 'SET_CHART':
+      return { ...state, chartData: payload };
+    case 'UPDATE_KEYS':
+      return { ...state, selectedKeys: payload };
+    case 'RESET':
+      return IState;
+    default:
+      return state;
+  }
+};
+
 export default function App() {
-  const [chartData, addData] = useState<ChartData>([]);
-  const [selectedColors, setColor] = useState<{
-    [key: string]: string;
-  }>({});
+  const [store, dispatch] = useReducer(reducer, IState);
+
   const [versionInfo, setValue] = useState<{
     isDismissed: boolean;
     isLatest: boolean;
     currentVersion: string;
   }>({ isDismissed: true, isLatest: true, currentVersion: '' });
+
   const [isProcessing, toggleProcessing] = useState<boolean>(false);
   const [strokeSize, setStrokeSize] = useState<number>(2);
-  const [currFile, setFile] = useState<string>('');
+
   const [isDisabled, toggleDisabled] = useState(true);
   const [availableKeys, setKeys] = useState<string[]>([]);
-  const [selectedKeys, setSelected] = useState<string[]>([]);
-  const [recentFiles, setRecents] = useState<string[]>(
-    LocalStorageHelpers.getValue('files', '[]') ?? []
-  );
+
   const formRef = useRef<HTMLFormElement | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
+  const [labels, setLabels] = useState<{ x: string; y: string }>({
+    x: '',
+    y: ''
+  });
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      setRecents(JSON.parse(localStorage.getItem('files') ?? '[]') ?? []);
+    async function getRecents() {
+      const rec = await Storage.getValue();
+
+      dispatch({
+        type: Actions.SET_FILES,
+        payload: (rec?.files as string[]) ?? []
+      });
     }
-  }, [globalThis.window]);
+    getRecents();
+  }, []);
 
   const getVersionData = async () => {
     const versionInfo = (await GetVersionInfo()) as {
@@ -62,60 +137,69 @@ export default function App() {
     getVersionData();
   }, []);
 
-  const handleSetData = (fetchedData: {
+  const setAxisLabels = (action: 'x' | 'y' | 'clear', key?: string) => {
+    if (action === 'clear') {
+      setLabels({ x: '', y: '' });
+    }
+
+    setLabels((prev) => ({ ...prev, [action]: key ?? '' }));
+  };
+
+  const handleSetData = async (fetchedData: {
     fileName: string;
     records: { [key: string]: string | number }[];
     headers: string[];
   }) => {
+    const currentData = await Storage.getValue<{
+      files: string[];
+      [key: string]: {};
+    }>();
+    setLabels({ x: '', y: '' });
+
     formRef.current?.reset();
     toggleDisabled(true);
+    dispatch({ type: Actions.SET_FILE, payload: fetchedData.fileName });
+    setKeys(fetchedData.headers);
+    dispatch({ type: Actions.SET_CHART, payload: fetchedData.records });
 
-    setFile(fetchedData.fileName);
-    setKeys(
-      fetchedData.headers.filter((key) => !key.toLowerCase().includes('time'))
-    );
-
-    addData(fetchedData.records);
-
-    const currentFiles = LocalStorageHelpers.getValue<string[]>(
-      fetchedData.fileName,
-      '[]'
-    );
-
-    if (!currentFiles.includes(fetchedData.fileName)) {
-      const currFiles = LocalStorageHelpers.getValue<string[]>('files', '[]');
-
-      LocalStorageHelpers.setAll<{
-        fileName: string;
-        headers: string[];
-        records: { [key: string]: number | string }[];
-      }>({
-        files: [...currFiles, fetchedData.fileName],
-        [fetchedData.fileName]: {
-          fileName: fetchedData.fileName,
-          headers: fetchedData.headers.filter(
-            (key) => !key.toLowerCase().includes('time')
-          ),
-          records: fetchedData.records
-        }
-      });
-
-      if (!recentFiles.includes(fetchedData.fileName)) {
-        setRecents((prev) => [...prev, fetchedData.fileName]);
+    await Storage.setValues({
+      ...currentData,
+      files: currentData.files
+        ? [...(currentData.files ?? []), fetchedData.fileName]
+        : [fetchedData.fileName],
+      [fetchedData.fileName]: {
+        fileName: fetchedData.fileName,
+        headers: fetchedData.headers,
+        records: fetchedData.records
       }
+    });
+
+    if (!store.recentFiles.includes(fetchedData.fileName)) {
+      dispatch({
+        type: Actions.SET_FILES,
+        payload: [...store.recentFiles, fetchedData.fileName]
+      });
     }
 
     toggleProcessing(false);
   };
 
-  const handleDefaultPrefs = (fileName?: string) => {
-    setColor(
-      LocalStorageHelpers.getValue(`${fileName ?? currFile}-colors`, '{}')
-    );
+  const handleDefaultPrefs = async (fileName?: string) => {
+    const currentStore = await Storage.getValue();
+    dispatch({
+      type: Actions.UPDATE_COLORS,
+      payload:
+        (currentStore[`${fileName ?? store.currFile}-colors`] as {
+          [key: string]: string;
+        }) ?? {}
+    });
 
-    setSelected(
-      LocalStorageHelpers.getValue(`${fileName ?? currFile}-toggled`, '[]')
-    );
+    dispatch({
+      type: Actions.UPDATE_KEYS,
+      payload:
+        (currentStore[`${fileName ?? store.currFile}-toggled`] as string[]) ??
+        []
+    });
   };
 
   const detectChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
@@ -124,59 +208,78 @@ export default function App() {
     }
   }, []);
 
-  const handleSelectRecent = (fileName: string) => {
+  const handleSelectRecent = async (fileName: string) => {
     const fileData =
-      LocalStorageHelpers.getValue<{
+      (await Storage.getValue<{
+        fileName: string;
         headers: string[];
         records: { [key: string]: string | number }[];
-      }>(fileName, '{}') ?? null;
+        [key: string]: string[] | any;
+      }>()) ?? null;
 
     if (Object.keys(fileData).length) {
-      setKeys(fileData.headers);
-      addData(fileData.records);
+      dispatch({
+        type: Actions.UPDATE_KEYS,
+        payload: fileData[`${fileName}-toggled`] ?? []
+      });
 
-      setFile(fileName);
+      dispatch({
+        type: Actions.UPDATE_COLORS,
+        payload: fileData[`${fileName}-colors`] ?? {}
+      });
+
+      setKeys(fileData[fileName]?.headers ?? []);
+
+      dispatch({
+        type: Actions.SET_CHART,
+        payload: fileData[fileName]?.records ?? []
+      });
+
+      dispatch({ type: Actions.SET_FILE, payload: fileName });
     }
   };
 
   const removeAllFiles = () => {
-    LocalStorageHelpers.clearAll();
-    setRecents([]);
-    setSelected([]);
+    Storage.clearAll();
+    dispatch({ type: Actions.RESET, payload: null });
     setKeys([]);
-    setColor({});
-    setFile('');
   };
 
   useEffect(() => {
     handleDefaultPrefs();
-  }, [currFile]);
+  }, [store.currFile]);
 
-  const handleSwitchToggle = (isToggled: boolean, key: string) => {
-    if (!selectedKeys.includes(key) && isToggled) {
-      setSelected((prev) => {
-        const newVals = [...prev, key];
-        LocalStorageHelpers.setValues(`${currFile}-toggled`, newVals);
-        return newVals;
-      });
-    } else {
-      setSelected((prev) => {
-        const newVals = prev.filter((p) => p !== key);
-        LocalStorageHelpers.setValues(`${currFile}-toggled`, newVals);
-        return newVals;
-      });
-    }
+  const handleSwitchToggle = async (isToggled: boolean, key: string) => {
+    const keys =
+      !store.selectedKeys.includes(key) && isToggled
+        ? [...store.selectedKeys, key]
+        : store.selectedKeys.filter((k) => k !== key);
+
+    dispatch({
+      type: Actions.UPDATE_KEYS,
+      payload: keys
+    });
+
+    const curr = await Storage.getValue();
+    Storage.setValues({
+      ...curr,
+      [`${store.currFile}-toggled`]: keys
+    });
   };
 
-  const handleColorChange = (color: string, key: string) => {
-    setColor((prev) => {
-      const newVals = {
-        ...prev,
-        [key.toString()]: color
-      };
-
-      LocalStorageHelpers.setValues(`${currFile}-colors`, newVals);
-      return newVals;
+  const handleColorChange = async (color: string, key: string) => {
+    const payload = {
+      ...store.selectedColors,
+      [key.toString()]: color
+    };
+    dispatch({
+      type: Actions.UPDATE_COLORS,
+      payload
+    });
+    const curr = await Storage.getValue();
+    Storage.setValues({
+      ...curr,
+      [`${store.currFile}-colors`]: payload
     });
   };
 
@@ -200,6 +303,7 @@ export default function App() {
       }
     }
   };
+
   const handleSubmit = () => {
     toggleProcessing(true);
     if (inputRef?.current && inputRef.current.files) {
@@ -222,10 +326,11 @@ export default function App() {
       });
     }
   };
+
   const shouldShowAlert = !versionInfo.isLatest && !versionInfo.isDismissed;
 
   return (
-    <div className="h-screen">
+    <div>
       {shouldShowAlert && (
         <Alert
           onDismiss={() => setValue((prev) => ({ ...prev, isDismissed: true }))}
@@ -258,8 +363,8 @@ export default function App() {
       )}
       <Nav
         ref={formRef}
-        currentFile={currFile}
-        recentFiles={recentFiles}
+        currentFile={store.currFile}
+        recentFiles={store.recentFiles}
         isDisabled={isDisabled}
         isProcessing={isProcessing}
         handleSelectRecent={handleSelectRecent}
@@ -275,32 +380,26 @@ export default function App() {
           onChange={detectChange}
         />
       </Nav>
-      <div className="w-full my-6">
-        {currFile && <Heading currFile={currFile} />}
+      <div className="w-full h-full mt-6">
+        {store.currFile && <Heading currFile={store.currFile} />}
 
         {availableKeys.length ? (
           <>
-            <div className="flex flex-row justify-center gap-2 px-4 mt-4">
-              <div>
-                <DataMenu
-                  availableKeys={availableKeys}
-                  selectedColors={selectedColors}
-                  selectedKeys={selectedKeys}
-                  handleColorChange={handleColorChange}
-                  handleSwitchToggle={handleSwitchToggle}
-                />
-                <p className="prose text-center">
-                  <span className="underline">{selectedKeys.length}</span> data
-                  points selected
-                </p>
-              </div>
-            </div>
+            <ActionMenu
+              axisLabels={labels}
+              availableKeys={availableKeys}
+              selectedKeys={store.selectedKeys}
+              handleSwitchToggle={handleSwitchToggle}
+              setAxisLabels={setAxisLabels}
+            />
 
             <Chart
-              chartData={chartData}
+              handleColorChange={handleColorChange}
+              axisLabels={labels}
+              chartData={store.chartData}
               strokeSize={strokeSize}
-              selectedKeys={selectedKeys}
-              selectedColors={selectedColors}
+              selectedKeys={store.selectedKeys}
+              selectedColors={store.selectedColors}
             />
           </>
         ) : (
@@ -314,16 +413,6 @@ export default function App() {
           </Banner>
         )}
       </div>
-      <Footer className="fixed w-full bottom-0 rounded-none p-2 mt-4">
-        <Footer.Copyright
-          href="#"
-          by="anpato"
-          year={new Date().getFullYear()}
-        />
-        <p className="text-gray-500 dark:text-gray-400 ">
-          v{versionInfo.currentVersion}
-        </p>
-      </Footer>
     </div>
   );
 }
