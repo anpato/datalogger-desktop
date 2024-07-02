@@ -104,14 +104,14 @@ const Chart: FC<{
             dy={10}
             angle={-10}
             axisLine={false}
-            hide={!axisLabels.x}
-            tick={!!axisLabels.x}
+            hide={true}
+            tick={false}
             dataKey={axisLabels.x}
           >
             <Label dy={40} className="mx-20" value={axisLabels.x} offset={20} />
           </XAxis>
           <Brush
-            height={30}
+            height={40}
             className="[&>rect]:stroke-slate-400 [&>rect]:fill-slate-200 dark:[&>rect]:fill-slate-700 my-10"
           />
         </LineChart>
