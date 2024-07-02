@@ -15,50 +15,12 @@ import Papa from 'papaparse';
 import { uploadHandler } from './utils/upload-handler';
 import Nav from './components/nav';
 import Heading from './components/heading';
-import { ChartData, WidgetAction } from './constants';
+import { Action, Actions, ChartData, Store, WidgetAction } from './constants';
 import Chart from './components/chart';
 
 import ActionMenu from './components/action-menu';
 import Widgets from './components/widgets';
-import { CategoricalChartProps } from 'recharts/types/chart/generateCategoricalChart';
 import { CategoricalChartState } from 'recharts/types/chart/types';
-import { debounce } from './utils/debounce';
-
-const strokeSettings = {
-  min: 1,
-  max: 4
-};
-
-enum Actions {
-  SET_FILE = 'SET_FILE',
-  UPDATE_COLORS = 'UPDATE_COLORS',
-  SET_CHART = 'SET_CHART',
-  UPDATE_KEYS = 'UPDATE_KEYS',
-  SET_FILES = 'SET_FILES',
-  RESET = 'RESET'
-}
-
-type Action =
-  | {
-      type: Actions.SET_FILE;
-      payload: string;
-    }
-  | {
-      type: Actions.UPDATE_COLORS;
-      payload: { [key: string]: string };
-    }
-  | { type: Actions.SET_CHART; payload: ChartData }
-  | { type: Actions.UPDATE_KEYS; payload: string[] }
-  | { type: Actions.SET_FILES; payload: string[] }
-  | { type: Actions.RESET; payload: null };
-
-type Store = {
-  recentFiles: string[];
-  selectedKeys: string[];
-  currFile: string;
-  selectedColors: { [key: string]: string };
-  chartData: ChartData;
-};
 
 const IState: Store = {
   recentFiles: [],
@@ -102,7 +64,6 @@ export default function App() {
   }>({ isDismissed: true, isLatest: true, currentVersion: '' });
 
   const [isProcessing, toggleProcessing] = useState<boolean>(false);
-  const [strokeSize, setStrokeSize] = useState<number>(2);
 
   const [isDisabled, toggleDisabled] = useState(true);
   const [availableKeys, setKeys] = useState<string[]>([]);
@@ -374,7 +335,6 @@ export default function App() {
         handleColorChange={handleColorChange}
         axisLabels={labels}
         chartData={store.chartData}
-        strokeSize={strokeSize}
         selectedKeys={store.selectedKeys}
         selectedColors={store.selectedColors}
       />

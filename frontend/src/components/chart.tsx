@@ -13,12 +13,11 @@ import {
 import { ChartData, WidgetAction } from '../constants';
 import CustomLegend from './custom-legend';
 import { CategoricalChartState } from 'recharts/types/chart/types';
-import { debounce } from '../utils/debounce';
 
 const Chart: FC<{
   chartData: ChartData;
   selectedKeys: string[];
-  strokeSize: number;
+
   selectedColors: { [key: string]: string };
   widgets: { [key: string]: string | number };
   axisLabels: { x: string; y: string };
@@ -33,7 +32,7 @@ const Chart: FC<{
   chartData,
   selectedKeys,
   handleColorChange,
-  strokeSize,
+
   selectedColors,
   axisLabels,
   widgets,
@@ -63,7 +62,7 @@ const Chart: FC<{
                       : {};
                   return (
                     <Line
-                      strokeWidth={strokeSize}
+                      strokeWidth={2}
                       type="monotone"
                       dataKey={key}
                       key={key}
