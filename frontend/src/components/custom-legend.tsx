@@ -1,5 +1,5 @@
 import { Popover, Tooltip } from 'flowbite-react';
-import { FC } from 'react';
+import { FC, useEffect } from 'react';
 import { HexColorPicker } from 'react-colorful';
 import { cn } from '../utils/cn';
 import { Bookmark, Link, Pin, PinIcon } from 'lucide-react';
@@ -21,6 +21,8 @@ const CustomLegend: FC<{
   setWidgets,
   widgets
 }) => {
+  useEffect(() => {}, [setWidgets, widgets]);
+
   return (
     <div className="flex gap-2">
       <span>

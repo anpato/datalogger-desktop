@@ -2,6 +2,7 @@ import {
   ChangeEvent,
   useCallback,
   useEffect,
+  useMemo,
   useReducer,
   useRef,
   useState
@@ -14,11 +15,14 @@ import Papa from 'papaparse';
 import { uploadHandler } from './utils/upload-handler';
 import Nav from './components/nav';
 import Heading from './components/heading';
-import { ChartData } from './constants';
+import { ChartData, WidgetAction } from './constants';
 import Chart from './components/chart';
 
 import ActionMenu from './components/action-menu';
 import Widgets from './components/widgets';
+import { CategoricalChartProps } from 'recharts/types/chart/generateCategoricalChart';
+import { CategoricalChartState } from 'recharts/types/chart/types';
+import { debounce } from './utils/debounce';
 
 const strokeSettings = {
   min: 1,
@@ -294,27 +298,6 @@ export default function App() {
     });
   };
 
-  const changeStrokeSize = (direction: 'up' | 'down') => {
-    switch (direction) {
-      case 'up':
-        setStrokeSize((curr) => {
-          if (curr < strokeSettings.max) {
-            return (curr += 1);
-          }
-          return curr;
-        });
-        break;
-      case 'down': {
-        setStrokeSize((curr) => {
-          if (curr > strokeSettings.min) {
-            return (curr -= 1);
-          }
-          return curr;
-        });
-      }
-    }
-  };
-
   const handleSubmit = () => {
     toggleProcessing(true);
     if (inputRef?.current && inputRef.current.files) {
@@ -338,39 +321,66 @@ export default function App() {
     }
   };
 
-  const handleSetWidget = (
-    key: string,
-    value: string | number,
-    action: 'add' | 'updated' | 'delete'
-  ) => {
-    switch (action) {
-      case 'add':
-        setWidgets((prev) => ({
-          ...prev,
-          [key]: value ?? '0'
-        }));
-        break;
-      case 'updated':
-        if (Object.hasOwn(widgets, key)) {
+  const handleSetWidget = useCallback(
+    (key: string, value: string | number, action: WidgetAction) => {
+      switch (action) {
+        case 'add':
           setWidgets((prev) => ({
             ...prev,
-            [key]: value
+            [key]: value ?? '0'
           }));
-        }
-        break;
-      case 'delete':
-        console.log('Hello');
-        setWidgets((prev) => {
-          delete prev[key];
-          return { ...prev };
-        });
-        break;
-      default:
-        break;
-    }
+          break;
+        case 'updated':
+          if (Object.hasOwn(widgets, key)) {
+            setWidgets((prev) => ({
+              ...prev,
+              [key]: value
+            }));
+          }
+          break;
+        case 'delete':
+          setWidgets((prev) => {
+            delete prev[key];
+            return { ...prev };
+          });
+          break;
+        default:
+          break;
+      }
+    },
+    [setWidgets, widgets]
+  );
+
+  const handleChartMouseMove = (props: CategoricalChartState) => {
+    const activeItems: Record<string, string | number> = {};
+    props.activePayload?.forEach((item) => {
+      if (Object.hasOwn(widgets, item.dataKey)) {
+        activeItems[item.dataKey] = item.payload[item.dataKey];
+      }
+    });
+
+    if (Object.keys(activeItems).length)
+      setWidgets((prev) => ({ ...prev, ...activeItems }));
   };
 
   const shouldShowAlert = !versionInfo.isLatest && !versionInfo.isDismissed;
+
+  const memoizedChart = useMemo(
+    () => (
+      <Chart
+        handleChartMouseMove={handleChartMouseMove}
+        widgets={widgets}
+        setWidgets={handleSetWidget}
+        handleColorChange={handleColorChange}
+        axisLabels={labels}
+        chartData={store.chartData}
+        strokeSize={strokeSize}
+        selectedKeys={store.selectedKeys}
+        selectedColors={store.selectedColors}
+      />
+    ),
+    [store, widgets, setWidgets]
+  );
 
   return (
     <div>
@@ -423,7 +433,7 @@ export default function App() {
           onChange={detectChange}
         />
       </Nav>
-      <div className="w-full h-full mt-6">
+      <div className="w-full h-full p-8 mt-6">
         {store.currFile && <Heading currFile={store.currFile} />}
 
         {availableKeys.length ? (
@@ -441,16 +451,8 @@ export default function App() {
               widgets={widgets}
               colorMap={store.selectedColors}
             />
-            <Chart
-              widgets={widgets}
-              setWidgets={handleSetWidget}
-              handleColorChange={handleColorChange}
-              axisLabels={labels}
-              chartData={store.chartData}
-              strokeSize={strokeSize}
-              selectedKeys={store.selectedKeys}
-              selectedColors={store.selectedColors}
-            />
+
+            {memoizedChart}
           </>
         ) : (
           <Banner className="">
