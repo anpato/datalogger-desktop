@@ -18,6 +18,7 @@ import { ChartData } from './constants';
 import Chart from './components/chart';
 
 import ActionMenu from './components/action-menu';
+import Widgets from './components/widgets';
 
 const strokeSettings = {
   min: 1,
@@ -87,7 +88,9 @@ const reducer = (state: Store, { type, payload }: Action): Store => {
 
 export default function App() {
   const [store, dispatch] = useReducer(reducer, IState);
-
+  const [widgets, setWidgets] = useState<{ [key: string]: number | string }>(
+    {}
+  );
   const [versionInfo, setValue] = useState<{
     isDismissed: boolean;
     isLatest: boolean;
@@ -255,6 +258,13 @@ export default function App() {
         ? [...store.selectedKeys, key]
         : store.selectedKeys.filter((k) => k !== key);
 
+    if (!isToggled) {
+      setWidgets((prev) => {
+        delete prev[key];
+        return { ...prev };
+      });
+    }
+
     dispatch({
       type: Actions.UPDATE_KEYS,
       payload: keys
@@ -327,6 +337,38 @@ export default function App() {
     }
   };
 
+  const handleSetWidget = (
+    key: string,
+    value: string | number,
+    action: 'add' | 'updated' | 'delete'
+  ) => {
+    switch (action) {
+      case 'add':
+        setWidgets((prev) => ({
+          ...prev,
+          [key]: value ?? '0'
+        }));
+        break;
+      case 'updated':
+        if (Object.hasOwn(widgets, key)) {
+          setWidgets((prev) => ({
+            ...prev,
+            [key]: value
+          }));
+        }
+        break;
+      case 'delete':
+        console.log('Hello');
+        setWidgets((prev) => {
+          delete prev[key];
+          return { ...prev };
+        });
+        break;
+      default:
+        break;
+    }
+  };
+
   const shouldShowAlert = !versionInfo.isLatest && !versionInfo.isDismissed;
 
   return (
@@ -381,6 +423,12 @@ export default function App() {
         />
       </Nav>
       <div className="w-full h-full mt-6">
+        <Widgets
+          setWidgets={handleSetWidget}
+          widgets={widgets}
+          colorMap={store.selectedColors}
+        />
+
         {store.currFile && <Heading currFile={store.currFile} />}
 
         {availableKeys.length ? (
@@ -394,6 +442,8 @@ export default function App() {
             />
 
             <Chart
+              widgets={widgets}
+              setWidgets={handleSetWidget}
               handleColorChange={handleColorChange}
               axisLabels={labels}
               chartData={store.chartData}

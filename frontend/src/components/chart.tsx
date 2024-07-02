@@ -8,7 +8,6 @@ import {
   Tooltip as ChartTip,
   Brush,
   Legend,
-  LegendProps,
   Label
 } from 'recharts';
 import { ChartData } from '../constants';
@@ -19,26 +18,38 @@ const Chart: FC<{
   selectedKeys: string[];
   strokeSize: number;
   selectedColors: { [key: string]: string };
+  widgets: { [key: string]: string | number };
   axisLabels: { x: string; y: string };
   handleColorChange: (color: string, key: string) => void;
+  setWidgets: (
+    key: string,
+    value: string | number,
+    action: 'add' | 'updated'
+  ) => void;
 }> = ({
   chartData,
   selectedKeys,
   handleColorChange,
   strokeSize,
   selectedColors,
-  axisLabels
+  axisLabels,
+  widgets,
+  setWidgets
 }) => {
   return (
     <div className="w-full mx-0">
       <ResponsiveContainer className="h-full p-2" width={'100%'} height={900}>
-        <LineChart className="p-6 border-2 rounded-md" data={chartData}>
+        <LineChart
+          onMouseMove={(props) =>
+            props.activePayload?.forEach((item) => {
+              setWidgets(item.dataKey, item.payload[item.dataKey], 'updated');
+            })
+          }
+          className="p-6 border-2 rounded-md"
+          data={chartData}
+        >
           {!selectedKeys.length ? <h3>Select options from the right</h3> : null}
-          <Brush
-            y={40}
-            height={30}
-            className="[&>rect]:stroke-slate-400 [&>rect]:fill-slate-200 dark:[&>rect]:fill-slate-700 my-10"
-          />
+
           <ChartTip />
           {selectedKeys.map((key) => {
             const color =
@@ -60,7 +71,9 @@ const Chart: FC<{
             verticalAlign="top"
             formatter={(value) => (
               <CustomLegend
+                widgets={widgets}
                 value={value}
+                setWidgets={setWidgets}
                 handleColorChange={handleColorChange}
                 selectedColors={selectedColors}
               />
@@ -93,11 +106,14 @@ const Chart: FC<{
             axisLine={false}
             hide={!axisLabels.x}
             tick={!!axisLabels.x}
-            // label={axisLabels.x}
             dataKey={axisLabels.x}
           >
             <Label dy={40} className="mx-20" value={axisLabels.x} offset={20} />
           </XAxis>
+          <Brush
+            height={30}
+            className="[&>rect]:stroke-slate-400 [&>rect]:fill-slate-200 dark:[&>rect]:fill-slate-700 my-10"
+          />
         </LineChart>
       </ResponsiveContainer>
     </div>
