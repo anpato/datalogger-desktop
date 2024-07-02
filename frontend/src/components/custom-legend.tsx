@@ -2,7 +2,7 @@ import { Popover, Tooltip } from 'flowbite-react';
 import { FC } from 'react';
 import { HexColorPicker } from 'react-colorful';
 import { cn } from '../utils/cn';
-import { Link } from 'lucide-react';
+import { Bookmark, Link, Pin, PinIcon } from 'lucide-react';
 
 const CustomLegend: FC<{
   value: string;
@@ -50,7 +50,7 @@ const CustomLegend: FC<{
           className={Object.hasOwn(widgets, key) ? 'hidden' : 'visible'}
           content={'Click to pin as a widget'}
         >
-          <Link
+          <Bookmark
             onClick={() => setWidgets(key, '', 'add')}
             className={`hover:opacity-45`}
             style={

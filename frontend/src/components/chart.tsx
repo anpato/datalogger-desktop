@@ -38,7 +38,7 @@ const Chart: FC<{
 }) => {
   return (
     <div className="w-full mx-0">
-      <ResponsiveContainer className="h-full p-2" width={'100%'} height={900}>
+      <ResponsiveContainer className="h-full p-2" width={'100%'} height={600}>
         <LineChart
           onMouseMove={(props) =>
             props.activePayload?.forEach((item) => {

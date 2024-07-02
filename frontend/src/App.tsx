@@ -203,6 +203,7 @@ export default function App() {
         (currentStore[`${fileName ?? store.currFile}-toggled`] as string[]) ??
         []
     });
+    setWidgets({});
   };
 
   const detectChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
@@ -423,12 +424,6 @@ export default function App() {
         />
       </Nav>
       <div className="w-full h-full mt-6">
-        <Widgets
-          setWidgets={handleSetWidget}
-          widgets={widgets}
-          colorMap={store.selectedColors}
-        />
-
         {store.currFile && <Heading currFile={store.currFile} />}
 
         {availableKeys.length ? (
@@ -440,7 +435,12 @@ export default function App() {
               handleSwitchToggle={handleSwitchToggle}
               setAxisLabels={setAxisLabels}
             />
-
+            <Widgets
+              chartData={store.chartData}
+              setWidgets={handleSetWidget}
+              widgets={widgets}
+              colorMap={store.selectedColors}
+            />
             <Chart
               widgets={widgets}
               setWidgets={handleSetWidget}
