@@ -2,6 +2,7 @@ import {
   ChangeEvent,
   useCallback,
   useEffect,
+  useMemo,
   useReducer,
   useRef,
   useState
@@ -14,46 +15,12 @@ import Papa from 'papaparse';
 import { uploadHandler } from './utils/upload-handler';
 import Nav from './components/nav';
 import Heading from './components/heading';
-import { ChartData } from './constants';
+import { Action, Actions, ChartData, Store, WidgetAction } from './constants';
 import Chart from './components/chart';
 
 import ActionMenu from './components/action-menu';
-
-const strokeSettings = {
-  min: 1,
-  max: 4
-};
-
-enum Actions {
-  SET_FILE = 'SET_FILE',
-  UPDATE_COLORS = 'UPDATE_COLORS',
-  SET_CHART = 'SET_CHART',
-  UPDATE_KEYS = 'UPDATE_KEYS',
-  SET_FILES = 'SET_FILES',
-  RESET = 'RESET'
-}
-
-type Action =
-  | {
-      type: Actions.SET_FILE;
-      payload: string;
-    }
-  | {
-      type: Actions.UPDATE_COLORS;
-      payload: { [key: string]: string };
-    }
-  | { type: Actions.SET_CHART; payload: ChartData }
-  | { type: Actions.UPDATE_KEYS; payload: string[] }
-  | { type: Actions.SET_FILES; payload: string[] }
-  | { type: Actions.RESET; payload: null };
-
-type Store = {
-  recentFiles: string[];
-  selectedKeys: string[];
-  currFile: string;
-  selectedColors: { [key: string]: string };
-  chartData: ChartData;
-};
+import Widgets from './components/widgets';
+import { CategoricalChartState } from 'recharts/types/chart/types';
 
 const IState: Store = {
   recentFiles: [],
@@ -87,7 +54,9 @@ const reducer = (state: Store, { type, payload }: Action): Store => {
 
 export default function App() {
   const [store, dispatch] = useReducer(reducer, IState);
-
+  const [widgets, setWidgets] = useState<{ [key: string]: number | string }>(
+    {}
+  );
   const [versionInfo, setValue] = useState<{
     isDismissed: boolean;
     isLatest: boolean;
@@ -95,7 +64,6 @@ export default function App() {
   }>({ isDismissed: true, isLatest: true, currentVersion: '' });
 
   const [isProcessing, toggleProcessing] = useState<boolean>(false);
-  const [strokeSize, setStrokeSize] = useState<number>(2);
 
   const [isDisabled, toggleDisabled] = useState(true);
   const [availableKeys, setKeys] = useState<string[]>([]);
@@ -200,6 +168,7 @@ export default function App() {
         (currentStore[`${fileName ?? store.currFile}-toggled`] as string[]) ??
         []
     });
+    setWidgets({});
   };
 
   const detectChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
@@ -255,6 +224,13 @@ export default function App() {
         ? [...store.selectedKeys, key]
         : store.selectedKeys.filter((k) => k !== key);
 
+    if (!isToggled) {
+      setWidgets((prev) => {
+        delete prev[key];
+        return { ...prev };
+      });
+    }
+
     dispatch({
       type: Actions.UPDATE_KEYS,
       payload: keys
@@ -283,27 +259,6 @@ export default function App() {
     });
   };
 
-  const changeStrokeSize = (direction: 'up' | 'down') => {
-    switch (direction) {
-      case 'up':
-        setStrokeSize((curr) => {
-          if (curr < strokeSettings.max) {
-            return (curr += 1);
-          }
-          return curr;
-        });
-        break;
-      case 'down': {
-        setStrokeSize((curr) => {
-          if (curr > strokeSettings.min) {
-            return (curr -= 1);
-          }
-          return curr;
-        });
-      }
-    }
-  };
-
   const handleSubmit = () => {
     toggleProcessing(true);
     if (inputRef?.current && inputRef.current.files) {
@@ -327,7 +282,65 @@ export default function App() {
     }
   };
 
+  const handleSetWidget = useCallback(
+    (key: string, value: string | number, action: WidgetAction) => {
+      switch (action) {
+        case 'add':
+          setWidgets((prev) => ({
+            ...prev,
+            [key]: value ?? '0'
+          }));
+          break;
+        case 'updated':
+          if (Object.hasOwn(widgets, key)) {
+            setWidgets((prev) => ({
+              ...prev,
+              [key]: value
+            }));
+          }
+          break;
+        case 'delete':
+          setWidgets((prev) => {
+            delete prev[key];
+            return { ...prev };
+          });
+          break;
+        default:
+          break;
+      }
+    },
+    [setWidgets, widgets]
+  );
+
+  const handleChartMouseMove = (props: CategoricalChartState) => {
+    const activeItems: Record<string, string | number> = {};
+    props.activePayload?.forEach((item) => {
+      if (Object.hasOwn(widgets, item.dataKey)) {
+        activeItems[item.dataKey] = item.payload[item.dataKey];
+      }
+    });
+
+    if (Object.keys(activeItems).length)
+      setWidgets((prev) => ({ ...prev, ...activeItems }));
+  };
+
   const shouldShowAlert = !versionInfo.isLatest && !versionInfo.isDismissed;
+
+  const memoizedChart = useMemo(
+    () => (
+      <Chart
+        handleChartMouseMove={handleChartMouseMove}
+        widgets={widgets}
+        setWidgets={handleSetWidget}
+        handleColorChange={handleColorChange}
+        axisLabels={labels}
+        chartData={store.chartData}
+        selectedKeys={store.selectedKeys}
+        selectedColors={store.selectedColors}
+      />
+    ),
+    [store, widgets, setWidgets]
+  );
 
   return (
     <div>
@@ -380,7 +393,7 @@ export default function App() {
           onChange={detectChange}
         />
       </Nav>
-      <div className="w-full h-full mt-6">
+      <div className="w-full h-full p-8 mt-6">
         {store.currFile && <Heading currFile={store.currFile} />}
 
         {availableKeys.length ? (
@@ -392,15 +405,14 @@ export default function App() {
               handleSwitchToggle={handleSwitchToggle}
               setAxisLabels={setAxisLabels}
             />
-
-            <Chart
-              handleColorChange={handleColorChange}
-              axisLabels={labels}
+            <Widgets
               chartData={store.chartData}
-              strokeSize={strokeSize}
-              selectedKeys={store.selectedKeys}
-              selectedColors={store.selectedColors}
+              setWidgets={handleSetWidget}
+              widgets={widgets}
+              colorMap={store.selectedColors}
             />
+
+            {memoizedChart}
           </>
         ) : (
           <Banner className="">
