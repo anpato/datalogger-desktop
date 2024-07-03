@@ -8,19 +8,16 @@ type IProps = {
   selectedKeys: string[];
   handleSwitchToggle: (isToggled: boolean, key: string) => void;
   setAxisLabels: (action: 'x' | 'y' | 'clear', key?: string) => void;
-  setCalcType: (value: string) => void;
+
   axisLabels: { x: string; y: string };
 };
-
-const calculationItems = ['AFR (MAF)'];
 
 const ActionMenu: FC<IProps> = ({
   availableKeys,
   selectedKeys,
   handleSwitchToggle,
   setAxisLabels,
-  axisLabels,
-  setCalcType
+  axisLabels
 }) => {
   return (
     <div className="flex flex-row justify-center items-start gap-2 px-4 mt-4">
@@ -53,19 +50,7 @@ const ActionMenu: FC<IProps> = ({
           selected
         </p>
       </div>
-      <div>
-        <Dropdown label="Calculation" outline>
-          {calculationItems.map((item) => (
-            <DropdownItem
-              key={item}
-              value={item}
-              onClick={() => setCalcType(item)}
-            >
-              {item}
-            </DropdownItem>
-          ))}
-        </Dropdown>
-      </div>
+      <div></div>
     </div>
   );
 };

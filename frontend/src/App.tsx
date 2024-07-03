@@ -439,6 +439,7 @@ export default function App() {
         handleSelectRecent={handleSelectRecent}
         handleSubmit={handleSubmit}
         removeFiles={removeAllFiles}
+        setCalcType={setCalcType}
       >
         <FileInput
           ref={inputRef}
@@ -464,7 +465,6 @@ export default function App() {
         {availableKeys.length ? (
           <>
             <ActionMenu
-              setCalcType={setCalcType}
               axisLabels={labels}
               availableKeys={[...availableKeys, ...tmpKeys]}
               selectedKeys={store.selectedKeys}
