@@ -1,6 +1,6 @@
 import { FC } from 'react';
 import DataMenu from './data-menu';
-import { Dropdown, DropdownItem } from 'flowbite-react';
+import { Dropdown, DropdownItem, Select } from 'flowbite-react';
 import { Check } from 'lucide-react';
 
 type IProps = {
@@ -10,6 +10,8 @@ type IProps = {
   setAxisLabels: (action: 'x' | 'y' | 'clear', key?: string) => void;
   axisLabels: { x: string; y: string };
 };
+
+const calculationItems = ['AFR (MAF)'];
 
 const ActionMenu: FC<IProps> = ({
   availableKeys,
@@ -49,7 +51,6 @@ const ActionMenu: FC<IProps> = ({
           selected
         </p>
       </div>
-      <div></div>
     </div>
   );
 };
