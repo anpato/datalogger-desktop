@@ -9,7 +9,14 @@ import {
 } from 'react';
 import { GetVersionInfo } from '@wailsjs/go/main/App';
 import { BrowserOpenURL } from '@wailsjs/runtime';
-import { FileInput, Banner, Alert, Button, Footer } from 'flowbite-react';
+import {
+  FileInput,
+  Banner,
+  Alert,
+  Button,
+  Footer,
+  Modal
+} from 'flowbite-react';
 import { Storage } from './utils/storage';
 import Papa from 'papaparse';
 import { uploadHandler } from './utils/upload-handler';
@@ -21,6 +28,7 @@ import Chart from './components/chart';
 import ActionMenu from './components/action-menu';
 import Widgets from './components/widgets';
 import { CategoricalChartState } from 'recharts/types/chart/types';
+import Calculator from './components/calculator';
 
 const IState: Store = {
   recentFiles: [],
@@ -42,7 +50,10 @@ const reducer = (state: Store, { type, payload }: Action): Store => {
     case 'SET_FILES':
       return { ...state, recentFiles: payload };
     case 'SET_CHART':
-      return { ...state, chartData: payload };
+      return {
+        ...state,
+        chartData: payload
+      };
     case 'UPDATE_KEYS':
       return { ...state, selectedKeys: payload };
     case 'RESET':
@@ -57,6 +68,7 @@ export default function App() {
   const [widgets, setWidgets] = useState<{ [key: string]: number | string }>(
     {}
   );
+  const [calcType, setCalcType] = useState<string>('');
   const [versionInfo, setValue] = useState<{
     isDismissed: boolean;
     isLatest: boolean;
@@ -67,7 +79,7 @@ export default function App() {
 
   const [isDisabled, toggleDisabled] = useState(true);
   const [availableKeys, setKeys] = useState<string[]>([]);
-
+  const [tmpKeys, setTmpKeys] = useState<string[]>([]);
   const formRef = useRef<HTMLFormElement | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
   const [labels, setLabels] = useState<{ x: string; y: string }>({
@@ -239,7 +251,7 @@ export default function App() {
     const curr = await Storage.getValue();
     Storage.setValues({
       ...curr,
-      [`${store.currFile}-toggled`]: keys
+      [`${store.currFile}-toggled`]: keys.filter((k) => !tmpKeys.includes(k))
     });
   };
 
@@ -253,6 +265,7 @@ export default function App() {
       payload
     });
     const curr = await Storage.getValue();
+    tmpKeys.forEach((k) => delete payload[k]);
     Storage.setValues({
       ...curr,
       [`${store.currFile}-colors`]: payload
@@ -339,8 +352,51 @@ export default function App() {
         selectedColors={store.selectedColors}
       />
     ),
-    [store, widgets, setWidgets]
+    [
+      store.chartData,
+      store.selectedKeys,
+      tmpKeys,
+      widgets,
+      setWidgets,
+      store.selectedColors
+    ]
   );
+
+  const applyAfrCalculation = (key: string, afr: string, afrKey: string) => {
+    const newKey = `Adjusted ${key}`;
+    const pctChange = `${key} Pct Change`;
+    const calculated = store.chartData.map((data) => {
+      const calc = (Number(data[key]) * Number(data[afrKey])) / parseFloat(afr);
+      const pct = 100 * ((calc - Number(data[key])) / Number(data[key]));
+      return {
+        ...data,
+        [newKey]: calc.toFixed(2),
+        [pctChange]: pct.toFixed(2)
+      };
+    });
+
+    dispatch({ type: Actions.SET_CHART, payload: calculated });
+
+    setTmpKeys((prev) => {
+      if (!prev.includes(newKey)) {
+        prev.push(newKey);
+      }
+      if (!prev.includes(pctChange)) {
+        prev.push(pctChange);
+      }
+      dispatch({
+        type: Actions.UPDATE_KEYS,
+        payload: [
+          ...store.selectedKeys.filter((k) => k !== key || k !== afrKey),
+          ...prev
+        ]
+      });
+
+      return prev;
+    });
+
+    setCalcType('');
+  };
 
   return (
     <div>
@@ -393,18 +449,29 @@ export default function App() {
           onChange={detectChange}
         />
       </Nav>
+      <Modal show={!!calcType} onClose={() => setCalcType('')}>
+        <Modal.Header>Calculator</Modal.Header>
+        <Modal.Body>
+          <Calculator
+            availableKeys={availableKeys}
+            applyAfr={applyAfrCalculation}
+          />
+        </Modal.Body>
+      </Modal>
       <div className="w-full h-full p-8 mt-6">
         {store.currFile && <Heading currFile={store.currFile} />}
 
         {availableKeys.length ? (
           <>
             <ActionMenu
+              setCalcType={setCalcType}
               axisLabels={labels}
-              availableKeys={availableKeys}
+              availableKeys={[...availableKeys, ...tmpKeys]}
               selectedKeys={store.selectedKeys}
               handleSwitchToggle={handleSwitchToggle}
               setAxisLabels={setAxisLabels}
             />
+
             <Widgets
               chartData={store.chartData}
               setWidgets={handleSetWidget}
