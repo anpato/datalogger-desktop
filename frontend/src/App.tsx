@@ -465,7 +465,6 @@ export default function App() {
         {availableKeys.length ? (
           <>
             <ActionMenu
-              setCalcType={setCalcType}
               axisLabels={labels}
               availableKeys={[...availableKeys, ...tmpKeys]}
               selectedKeys={store.selectedKeys}
