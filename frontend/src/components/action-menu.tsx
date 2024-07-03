@@ -8,9 +8,10 @@ type IProps = {
   selectedKeys: string[];
   handleSwitchToggle: (isToggled: boolean, key: string) => void;
   setAxisLabels: (action: 'x' | 'y' | 'clear', key?: string) => void;
-
   axisLabels: { x: string; y: string };
 };
+
+const calculationItems = ['AFR (MAF)'];
 
 const ActionMenu: FC<IProps> = ({
   availableKeys,
@@ -50,7 +51,6 @@ const ActionMenu: FC<IProps> = ({
           selected
         </p>
       </div>
-      <div></div>
     </div>
   );
 };
