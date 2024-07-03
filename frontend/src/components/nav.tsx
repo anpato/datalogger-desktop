@@ -9,6 +9,7 @@ import { ReactNode, forwardRef } from 'react';
 import icon from '~/assets/icon.svg';
 import { cn } from '../utils/cn';
 import { Trash } from 'lucide-react';
+import { calculationItems } from '../constants';
 
 type IProps = {
   recentFiles: string[];
@@ -19,6 +20,7 @@ type IProps = {
   handleSelectRecent: (file: string) => void;
   handleSubmit: () => void;
   removeFiles: () => void;
+  setCalcType: (value: string) => void;
 };
 
 const Nav = forwardRef<HTMLFormElement | null, IProps>(
@@ -31,7 +33,8 @@ const Nav = forwardRef<HTMLFormElement | null, IProps>(
       isProcessing,
       currentFile,
       removeFiles,
-      children
+      children,
+      setCalcType
     },
     formRef
   ) => {
@@ -47,6 +50,22 @@ const Nav = forwardRef<HTMLFormElement | null, IProps>(
 
         <Navbar.Collapse>
           <div className="flex flex-col-reverse md:flex-row gap-4 items-center">
+            <Dropdown
+              disabled={!currentFile}
+              label="Tools"
+              outline
+              className="dark:text-white"
+            >
+              {calculationItems.map((item) => (
+                <DropdownItem
+                  key={item}
+                  value={item}
+                  onClick={() => setCalcType(item)}
+                >
+                  Calculate {item}
+                </DropdownItem>
+              ))}
+            </Dropdown>
             <Dropdown label="Recent files" className="dark:text-white">
               {recentFiles?.map((file) => (
                 <Dropdown.Item

@@ -30,3 +30,5 @@ export type Store = {
   selectedColors: { [key: string]: string };
   chartData: ChartData;
 };
+
+export const calculationItems = ['AFR (MAF)'];

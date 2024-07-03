@@ -439,6 +439,7 @@ export default function App() {
         handleSelectRecent={handleSelectRecent}
         handleSubmit={handleSubmit}
         removeFiles={removeAllFiles}
+        setCalcType={setCalcType}
       >
         <FileInput
           ref={inputRef}
