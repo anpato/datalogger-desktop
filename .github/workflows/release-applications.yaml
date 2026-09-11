@@ -15,7 +15,7 @@ jobs:
       url: ${{steps.release.outputs.upload_url}}
     steps:
       - name: Create Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         id: release
         with:
           name: release/${{ inputs.version }}
@@ -51,10 +51,10 @@ jobs:
           ]
     runs-on: ${{matrix.build.os}}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: 'Install Pnpm'
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v6
         with:
           version: '8.14'
 
@@ -77,7 +77,7 @@ jobs:
 
       - name: Upload build artifacts
         if: github.event_name != 'pull_request'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ matrix.build.file }}
           path: ${{ env.output }}/${{ matrix.build.file }}.tar
